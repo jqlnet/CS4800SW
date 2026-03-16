@@ -3,38 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${title}">My Receipts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f8f8;
+            color: #111;
+        }
+        header {
+            background: #111;
+            color: #fff;
+            padding: 12px 24px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        main {
+            max-width: 900px;
+            margin: 24px auto;
+            background: #fff;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        a {
+            color: #111;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav-links a {
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background: #eaeaea;
+        }
+        .status-refund {
+            color: #0b6623;
+            font-weight: bold;
+        }
+        .status-expired {
+            color: #800000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<h1 th:text="${title}">My Receipts</h1>
+<header>
+    <h1>Receipt Tracker – CS4800</h1>
+</header>
+<main>
+    <div class="nav-links">
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/receipts}">Receipts</a>
+        <a th:href="@{/receipts/add}">Add Receipt</a>
+    </div>
+    <hr/>
 
-<table border="1" cellpadding="6">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Vendor</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Payment</th>
-        <th>Refund deadline</th>
-        <th>Status</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="receipt : ${receipts}">
-        <td th:text="${receipt.id}">1</td>
-        <td th:text="${receipt.vendor}">Vendor</td>
-        <td th:text="${receipt.amount}">0.00</td>
-        <td th:text="${receipt.date}">2026-03-15</td>
-        <td th:text="${receipt.paymentType}">Card</td>
-        <td th:text="${receipt.refundDeadline}">2026-04-10</td>
-        <td th:text="${receipt.refundable} ? 'Refundable' : 'Expired'">Status</td>
-    </tr>
-    </tbody>
-</table>
+    <h2 th:text="${title}">My Receipts</h2>
 
-<p><a th:href="@{/}">Back to home</a></p>
-<p><a th:href="@{/receipts/add}">Add another receipt</a></p>
-
-
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Vendor</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Payment</th>
+            <th>Refund deadline</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="receipt : ${receipts}">
+            <td th:text="${receipt.id}">1</td>
+            <td th:text="${receipt.vendor}">Vendor</td>
+            <td th:text="${receipt.amount}">0.00</td>
+            <td th:text="${receipt.date}">2026-03-15</td>
+            <td th:text="${receipt.paymentType}">Card</td>
+            <td th:text="${receipt.refundDeadline}">2026-04-10</td>
+            <td th:text="${receipt.refundable} ? 'Refundable' : 'Expired'"
+                th:classappend="${receipt.refundable} ? ' status-refund' : ' status-expired'">
+                Status
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
 </body>
 </html>
