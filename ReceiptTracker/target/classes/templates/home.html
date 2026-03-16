@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Receipt Tracker</title>
+</head>
+<body>
+<h1 th:text="${title}">Receipt Tracker</h1>
+
+<p>Welcome to our CS4800 Receipt Tracker project.</p>
+
+<ul>
+    <li><a th:href="@{/receipts}">View Receipts</a></li>
+</ul>
+
+</body>
+</html>
