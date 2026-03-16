@@ -26,16 +26,14 @@ public class ReceiptController {
                 4.55,
                 LocalDate.now().minusDays(2),
                 "Card",
-                LocalDate.now().plusDays(28)
-        ));
+                LocalDate.now().plusDays(28)));
         receipts.add(new Receipt(
                 idSequence.getAndIncrement(),
                 "Grocery Store",
                 32.10,
                 LocalDate.now().minusDays(20),
                 "EBT",
-                LocalDate.now().minusDays(5)
-        ));
+                LocalDate.now().minusDays(5)));
     }
 
     @GetMapping("/")
@@ -46,8 +44,13 @@ public class ReceiptController {
 
     @GetMapping("/receipts")
     public String getReceipts(Model model) {
+        double totalAmount = receipts.stream()
+                .mapToDouble(Receipt::getAmount)
+                .sum();
+
         model.addAttribute("title", "My Receipts");
         model.addAttribute("receipts", receipts);
+        model.addAttribute("totalAmount", totalAmount);
         return "receipts";
     }
 
@@ -59,18 +62,17 @@ public class ReceiptController {
 
     @PostMapping("/receipts")
     public String addReceipt(@RequestParam String vendor,
-                             @RequestParam double amount,
-                             @RequestParam String date,
-                             @RequestParam String paymentType,
-                             @RequestParam String refundDeadline) {
+            @RequestParam double amount,
+            @RequestParam String date,
+            @RequestParam String paymentType,
+            @RequestParam String refundDeadline) {
         Receipt receipt = new Receipt(
                 idSequence.getAndIncrement(),
                 vendor,
                 amount,
                 LocalDate.parse(date),
                 paymentType,
-                LocalDate.parse(refundDeadline)
-        );
+                LocalDate.parse(refundDeadline));
         receipts.add(receipt);
         return "redirect:/receipts";
     }

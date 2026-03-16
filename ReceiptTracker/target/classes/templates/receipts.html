@@ -102,6 +102,16 @@
         </tr>
         </tbody>
     </table>
+<div style="margin-top: 12px;">
+    <p><strong>Total spent:</strong>
+        <span th:text="${#numbers.formatDecimal(totalAmount, 1, '2', 'POINT')}">$0.00</span>
+    </p>
+    <p th:if="${ebtTotal != null}">
+        <strong>Total EBT receipts:</strong>
+        <span th:text="${#numbers.formatDecimal(ebtTotal, 1, '2', 'POINT')}">$0.00</span>
+    </p>
+</div>
+    
 </main>
 </body>
 </html>
