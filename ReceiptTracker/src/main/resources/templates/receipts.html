@@ -11,9 +11,9 @@
     <thead>
     <tr>
         <th>ID</th>
-        <th>Store</th>
+        <th>Vendor</th>
+        <th>Amount</th>
         <th>Date</th>
-        <th>Total</th>
         <th>Payment</th>
         <th>Refund deadline</th>
         <th>Status</th>
@@ -22,9 +22,9 @@
     <tbody>
     <tr th:each="receipt : ${receipts}">
         <td th:text="${receipt.id}">1</td>
-        <td th:text="${receipt.storeName}">Store</td>
-        <td th:text="${receipt.purchaseDate}">2026-03-15</td>
-        <td th:text="${receipt.totalAmount}">0.00</td>
+        <td th:text="${receipt.vendor}">Vendor</td>
+        <td th:text="${receipt.amount}">0.00</td>
+        <td th:text="${receipt.date}">2026-03-15</td>
         <td th:text="${receipt.paymentType}">Card</td>
         <td th:text="${receipt.refundDeadline}">2026-04-10</td>
         <td th:text="${receipt.refundable} ? 'Refundable' : 'Expired'">Status</td>
@@ -33,6 +33,8 @@
 </table>
 
 <p><a th:href="@{/}">Back to home</a></p>
+<p><a th:href="@{/receipts/add}">Add another receipt</a></p>
+
 
 </body>
 </html>
