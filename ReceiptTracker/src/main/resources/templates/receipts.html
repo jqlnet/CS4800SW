@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">My Receipts</title>
+</head>
+<body>
+<h1 th:text="${title}">My Receipts</h1>
+
+<table border="1" cellpadding="6">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Store</th>
+        <th>Date</th>
+        <th>Total</th>
+        <th>Payment</th>
+        <th>Refund deadline</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="receipt : ${receipts}">
+        <td th:text="${receipt.id}">1</td>
+        <td th:text="${receipt.storeName}">Store</td>
+        <td th:text="${receipt.purchaseDate}">2026-03-15</td>
+        <td th:text="${receipt.totalAmount}">0.00</td>
+        <td th:text="${receipt.paymentType}">Card</td>
+        <td th:text="${receipt.refundDeadline}">2026-04-10</td>
+        <td th:text="${receipt.refundable} ? 'Refundable' : 'Expired'">Status</td>
+    </tr>
+    </tbody>
+</table>
+
+<p><a th:href="@{/}">Back to home</a></p>
+
+</body>
+</html>
