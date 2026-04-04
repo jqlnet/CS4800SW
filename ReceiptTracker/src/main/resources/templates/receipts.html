@@ -15,6 +15,7 @@
       --muted:       #8a8680;
       --danger:      #ef4444;
       --success:     #4ade80;
+      --ebt-color:   #4ade80;
       --border-soft: rgba(200,190,170,0.12);
       --table-row-alt: rgba(200,190,170,0.03);
     }
@@ -22,12 +23,13 @@
       --bg:          #e6e9ef;
       --bg-alt:      #eff1f5;
       --card:        #ffffff;
-      --accent:      #d97706;
-      --accent-soft: rgba(217,119,6,0.10);
+      --accent:      #eab308;
+      --accent-soft: rgba(234,179,8,0.12);
       --text:        #4c4f69;
       --muted:       #6b7280;
       --danger:      #d20f39;
       --success:     #16a34a;
+      --ebt-color:   #e11d74;
       --border-soft: rgba(148,163,184,0.4);
       --table-row-alt: rgba(0,0,0,0.02);
     }
@@ -44,7 +46,6 @@
       display: flex; align-items: center; justify-content: space-between;
       background: var(--bg-alt); position: sticky; top: 0; z-index: 20;
     }
-    body.theme-light header { background: var(--bg-alt); }
     .app-name { font-size: 16px; font-weight: 700; color: var(--text); }
     nav a {
       color: var(--muted); text-decoration: none;
@@ -104,10 +105,11 @@
     }
     .stat-card:hover { border-color: var(--accent); }
     .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-    .stat-value { font-size: 28px; font-weight: 800; }
-    .stat-value.accent  { color: var(--accent); }
-    .stat-value.success { color: var(--success); }
-    .stat-value.danger  { color: var(--danger); }
+    .stat-value          { font-size: 28px; font-weight: 800; }
+    .stat-value.accent   { color: var(--accent); }
+    .stat-value.ebt-val  { color: var(--ebt-color); }
+    .stat-value.success  { color: var(--success); }
+    .stat-value.danger   { color: var(--danger); }
 
     /* ── FILTER BAR ── */
     .filter-bar {
@@ -214,13 +216,12 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">EBT Spent</div>
-      <div class="stat-value success"
+      <div class="stat-value ebt-val"
            th:text="'$' + ${#numbers.formatDecimal(ebtTotal, 1, '2', 'POINT')}">$0.00</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Refundable</div>
-      <div class="stat-value"
-           th:text="${receipts.stream().filter(r -> r.refundable).count()}">0</div>
+      <div class="stat-value success" th:text="${refundableCount}">0</div>
     </div>
   </div>
 

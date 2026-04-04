@@ -65,6 +65,13 @@ public class ReceiptController {
                 .mapToDouble(Receipt::getAmount)
                 .sum();
 
+        // Count of refundable receipts
+        long refundableCount = receipts.stream()
+                .filter(Receipt::isRefundable)
+                .count();
+
+        model.addAttribute("refundableCount", refundableCount);
+
         model.addAttribute("title", "My Receipts");
         model.addAttribute("receipts", receipts);
         model.addAttribute("totalAmount", totalAmount);
@@ -80,9 +87,9 @@ public class ReceiptController {
 
     @PostMapping("/receipts")
     public String addReceipt(@RequestParam String vendor,
-                             @RequestParam double amount,
-                             @RequestParam String date,
-                             @RequestParam String paymentType) {
+            @RequestParam double amount,
+            @RequestParam String date,
+            @RequestParam String paymentType) {
         LocalDate purchaseDate = LocalDate.parse(date);
         // Auto-calculate refund deadline as 30 days from purchase date
         LocalDate refundDeadline = purchaseDate.plusDays(30);
