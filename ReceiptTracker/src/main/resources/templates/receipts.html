@@ -1,117 +1,347 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="${title}">My Receipts</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f8f8f8;
-            color: #111;
-        }
-        header {
-            background: #111;
-            color: #fff;
-            padding: 12px 24px;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-        main {
-            max-width: 900px;
-            margin: 24px auto;
-            background: #fff;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-        }
-        a {
-            color: #111;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .nav-links a {
-            margin-right: 12px;
-            font-weight: bold;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 8px 10px;
-            text-align: left;
-        }
-        th {
-            background: #eaeaea;
-        }
-        .status-refund {
-            color: #0b6623;
-            font-weight: bold;
-        }
-        .status-expired {
-            color: #800000;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${title}">My Receipts</title>
+  <style>
+    :root {
+      --bg:          #111110;
+      --bg-alt:      #1a1a18;
+      --card:        #1f1f1d;
+      --accent:      #f59e0b;
+      --accent-soft: rgba(245,158,11,0.12);
+      --text:        #e8e6e1;
+      --muted:       #8a8680;
+      --danger:      #ef4444;
+      --success:     #4ade80;
+      --border-soft: rgba(200,190,170,0.12);
+      --table-row-alt: rgba(200,190,170,0.03);
+    }
+    body.theme-light {
+      --bg:          #e6e9ef;
+      --bg-alt:      #eff1f5;
+      --card:        #ffffff;
+      --accent:      #d97706;
+      --accent-soft: rgba(217,119,6,0.10);
+      --text:        #4c4f69;
+      --muted:       #6b7280;
+      --danger:      #d20f39;
+      --success:     #16a34a;
+      --border-soft: rgba(148,163,184,0.4);
+      --table-row-alt: rgba(0,0,0,0.02);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 14px 32px; border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-alt); position: sticky; top: 0; z-index: 20;
+    }
+    body.theme-light header { background: var(--bg-alt); }
+    .app-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    nav a {
+      color: var(--muted); text-decoration: none;
+      font-size: 13px; margin-left: 20px; transition: color 0.2s;
+    }
+    nav a:hover { color: var(--accent); }
+    .theme-toggle {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; padding: 5px 13px; border-radius: 999px;
+      border: 1px solid var(--border-soft); background: transparent;
+      color: var(--muted); cursor: pointer; margin-left: 20px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── PAGE ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 36px 32px; }
+    .page-title-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
+    }
+    .page-kicker { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+    .page-title  { font-size: 32px; font-weight: 800; line-height: 1; }
+    .page-sub    { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .btn-row     { display: flex; gap: 10px; align-items: center; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 20px; border-radius: 999px;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s; white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-soft);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger-sm {
+      padding: 5px 14px; border-radius: 6px; font-size: 12px;
+      font-weight: 600; background: var(--danger); color: #fff;
+      border: none; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-danger-sm:hover { opacity: 0.85; }
+
+    /* ── STAT CARDS ── */
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 14px; padding: 20px 22px; transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 800; }
+    .stat-value.accent  { color: var(--accent); }
+    .stat-value.success { color: var(--success); }
+    .stat-value.danger  { color: var(--danger); }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 14px; padding: 20px 22px; margin-bottom: 20px;
+    }
+    .filter-grid {
+      display: grid; grid-template-columns: 1fr 200px 200px;
+      gap: 16px; align-items: end; margin-bottom: 14px;
+    }
+    @media (max-width: 700px) { .filter-grid { grid-template-columns: 1fr; } }
+    .filter-field label {
+      display: block; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--muted); margin-bottom: 7px;
+    }
+    .filter-field input,
+    .filter-field select {
+      width: 100%; padding: 9px 13px; border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg); color: var(--text);
+      font-size: 13px; outline: none; transition: border-color 0.2s;
+    }
+    .filter-field input:focus,
+    .filter-field select:focus { border-color: var(--accent); }
+    .filter-field input::placeholder { color: var(--muted); }
+    .filter-actions { display: flex; gap: 8px; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 14px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border-soft); }
+    thead th {
+      text-align: left; padding: 13px 16px;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border-soft); transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--table-row-alt); }
+    tbody td { padding: 14px 16px; font-size: 13px; vertical-align: middle; }
+    .td-vendor { font-weight: 600; }
+    .td-amount { font-weight: 700; }
+
+    /* chips */
+    .chip {
+      display: inline-block; padding: 4px 12px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; border: 1px solid; white-space: nowrap;
+    }
+    .chip-ok     { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
+    .chip-exp    { border-color: var(--danger);  color: var(--danger);  background: rgba(239,68,68,0.08); }
+    .chip-accent { border-color: var(--accent);  color: var(--accent);  background: var(--accent-soft); }
+
+    .td-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .empty-row td { text-align: center; padding: 48px 16px; color: var(--muted); font-size: 14px; }
+  </style>
 </head>
 <body>
+
 <header>
-    <h1>Receipt Tracker – CS4800</h1>
+  <span class="app-name">🧾 Receipt Tracker</span>
+  <div style="display:flex;align-items:center;">
+    <nav>
+      <a th:href="@{/}">Home</a>
+      <a th:href="@{/receipts}">Receipts</a>
+      <a th:href="@{/receipts/add}">+ Add Receipt</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-label">Dark</span>
+    </button>
+  </div>
 </header>
-<main>
-    <div class="nav-links">
-        <a th:href="@{/}">Home</a>
-        <a th:href="@{/receipts}">Receipts</a>
-        <a th:href="@{/receipts/add}">Add Receipt</a>
+
+<div class="page">
+
+  <div class="page-title-row">
+    <div>
+      <div class="page-kicker">CS 4800 Project</div>
+      <div class="page-title">Receipt Tracker</div>
+      <div class="page-sub">Track purchases, filter records, and monitor refund windows.</div>
     </div>
-    <hr/>
+    <div class="btn-row">
+      <a th:href="@{/receipts/add}" class="btn btn-primary">+ Add Receipt</a>
+      <a th:href="@{/receipts/export}" class="btn btn-outline">Export CSV</a>
+    </div>
+  </div>
 
-    <h2 th:text="${title}">My Receipts</h2>
+  <!-- Stat cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Receipts</div>
+      <div class="stat-value" th:text="${receipts.size()}">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value accent"
+           th:text="'$' + ${#numbers.formatDecimal(totalAmount, 1, '2', 'POINT')}">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">EBT Spent</div>
+      <div class="stat-value success"
+           th:text="'$' + ${#numbers.formatDecimal(ebtTotal, 1, '2', 'POINT')}">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Refundable</div>
+      <div class="stat-value"
+           th:text="${receipts.stream().filter(r -> r.refundable).count()}">0</div>
+    </div>
+  </div>
 
-    <table>
-        <thead>
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label>Search</label>
+        <input type="text" id="search-input" placeholder="Vendor, payment type…"/>
+      </div>
+      <div class="filter-field">
+        <label>Payment</label>
+        <select id="filter-payment">
+          <option value="">All</option>
+          <option value="Card">Card</option>
+          <option value="Cash">Cash</option>
+          <option value="EBT">EBT</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Status</label>
+        <select id="filter-status">
+          <option value="">All</option>
+          <option value="refundable">Refundable</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
+      <button class="btn btn-outline" onclick="resetFilter()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="receipts-table">
+      <thead>
         <tr>
-            <th>ID</th>
-            <th>Vendor</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th>Payment</th>
-            <th>Refund deadline</th>
-            <th>Status</th>
+          <th>Vendor</th>
+          <th>Date</th>
+          <th>Payment</th>
+          <th>Refund Deadline</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Actions</th>
         </tr>
-        </thead>
-        <tbody>
-        <tr th:each="receipt : ${receipts}">
-            <td th:text="${receipt.id}">1</td>
-            <td th:text="${receipt.vendor}">Vendor</td>
-            <td th:text="${receipt.amount}">0.00</td>
-            <td th:text="${receipt.date}">2026-03-15</td>
-            <td th:text="${receipt.paymentType}">Card</td>
-            <td th:text="${receipt.refundDeadline}">2026-04-10</td>
-            <td th:text="${receipt.refundable} ? 'Refundable' : 'Expired'"
-                th:classappend="${receipt.refundable} ? ' status-refund' : ' status-expired'">
-                Status
-            </td>
+      </thead>
+      <tbody>
+        <tr th:if="${receipts.isEmpty()}" class="empty-row">
+          <td colspan="7">No receipts yet. <a th:href="@{/receipts/add}" style="color:var(--accent);">Add one →</a></td>
         </tr>
-        </tbody>
+        <tr th:each="receipt : ${receipts}"
+            th:attr="data-vendor=${receipt.vendor},
+                     data-payment=${receipt.paymentType},
+                     data-status=${receipt.refundable ? 'refundable' : 'expired'}">
+          <td class="td-vendor" th:text="${receipt.vendor}">Vendor</td>
+          <td th:text="${receipt.date}">2026-01-01</td>
+          <td>
+            <span class="chip"
+                  th:text="${receipt.paymentType}"
+                  th:classappend="${receipt.paymentType == 'EBT'} ? ' chip-accent' : ''">Card</span>
+          </td>
+          <td th:text="${receipt.refundDeadline}">—</td>
+          <td>
+            <span class="chip"
+                  th:text="${receipt.refundable} ? 'Refundable' : 'Expired'"
+                  th:classappend="${receipt.refundable} ? ' chip-ok' : ' chip-exp'">—</span>
+          </td>
+          <td class="td-amount"
+              th:text="'$' + ${#numbers.formatDecimal(receipt.amount, 1, '2', 'POINT')}">$0.00</td>
+          <td>
+            <div class="td-actions">
+              <form th:action="@{/receipts/delete/{id}(id=${receipt.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-danger-sm"
+                        onclick="return confirm('Delete this receipt?')">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </table>
-<div style="margin-top: 12px;">
-    <p><strong>Total spent:</strong>
-        <span th:text="${#numbers.formatDecimal(totalAmount, 1, '2', 'POINT')}">$0.00</span>
-    </p>
-    <p th:if="${ebtTotal != null}">
-        <strong>Total EBT receipts:</strong>
-        <span th:text="${#numbers.formatDecimal(ebtTotal, 1, '2', 'POINT')}">$0.00</span>
-    </p>
+  </div>
+
 </div>
-    
-</main>
+
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  const icon   = document.getElementById('theme-icon');
+  const lbl    = document.getElementById('theme-label');
+  function applyTheme(t) {
+    if (t === 'light') { document.body.classList.add('theme-light'); icon.textContent='☀️'; lbl.textContent='Light'; }
+    else { document.body.classList.remove('theme-light'); icon.textContent='🌙'; lbl.textContent='Dark'; }
+  }
+  applyTheme(localStorage.getItem('rt_theme') || 'dark');
+  toggle.addEventListener('click', () => {
+    const next = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+    applyTheme(next); localStorage.setItem('rt_theme', next);
+  });
+
+  function applyFilter() {
+    const q       = document.getElementById('search-input').value.toLowerCase();
+    const payment = document.getElementById('filter-payment').value.toLowerCase();
+    const status  = document.getElementById('filter-status').value.toLowerCase();
+    document.querySelectorAll('#receipts-table tbody tr[data-vendor]').forEach(row => {
+      const vendor = (row.dataset.vendor  || '').toLowerCase();
+      const pay    = (row.dataset.payment || '').toLowerCase();
+      const stat   = (row.dataset.status  || '').toLowerCase();
+      const matchQ = !q       || vendor.includes(q) || pay.includes(q);
+      const matchP = !payment || pay === payment;
+      const matchS = !status  || stat === status;
+      row.style.display = (matchQ && matchP && matchS) ? '' : 'none';
+    });
+  }
+  function resetFilter() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('filter-payment').value = '';
+    document.getElementById('filter-status').value = '';
+    applyFilter();
+  }
+  document.getElementById('search-input').addEventListener('input', applyFilter);
+</script>
 </body>
 </html>

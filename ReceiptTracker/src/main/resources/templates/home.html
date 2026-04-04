@@ -1,59 +1,158 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="${title}">Receipt Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f8f8f8;
-            color: #111;
-        }
-        header {
-            background: #111;
-            color: #fff;
-            padding: 12px 24px;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-        main {
-            max-width: 900px;
-            margin: 24px auto;
-            background: #fff;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-        }
-        a {
-            color: #111;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .nav-links a {
-            margin-right: 12px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${title}">Receipt Tracker</title>
+  <style>
+    :root {
+      --bg:          #111110;
+      --bg-alt:      #1a1a18;
+      --card:        #1f1f1d;
+      --accent:      #f59e0b;
+      --accent-soft: rgba(245,158,11,0.12);
+      --text:        #e8e6e1;
+      --muted:       #8a8680;
+      --border-soft: rgba(200,190,170,0.12);
+      --success:     #4ade80;
+    }
+    body.theme-light {
+      --bg:          #e6e9ef;
+      --bg-alt:      #eff1f5;
+      --card:        #ffffff;
+      --accent:      #d97706;
+      --accent-soft: rgba(217,119,6,0.10);
+      --text:        #4c4f69;
+      --muted:       #6b7280;
+      --border-soft: rgba(148,163,184,0.4);
+      --success:     #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; transition: background 0.3s, color 0.3s;
+    }
+    header {
+      padding: 14px 32px; border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-alt); position: sticky; top: 0; z-index: 20;
+    }
+    .app-name { font-size: 16px; font-weight: 700; }
+    nav a {
+      color: var(--muted); text-decoration: none;
+      font-size: 13px; margin-left: 20px; transition: color 0.2s;
+    }
+    nav a:hover { color: var(--accent); }
+    .theme-toggle {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; padding: 5px 13px; border-radius: 999px;
+      border: 1px solid var(--border-soft); background: transparent;
+      color: var(--muted); cursor: pointer; margin-left: 20px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+    .page { max-width: 1200px; margin: 0 auto; padding: 72px 32px; }
+    .hero { margin-bottom: 72px; }
+    .kicker { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+    .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+    .hero p  { font-size: 15px; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 32px; }
+    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 24px; border-radius: 999px;
+      font-size: 14px; font-weight: 600; text-decoration: none;
+      border: none; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-soft);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .section-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); margin-bottom: 16px;
+    }
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;
+    }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 14px; padding: 22px; transition: border-color 0.2s, transform 0.15s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .f-icon  { font-size: 26px; margin-bottom: 12px; }
+    .f-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .f-desc  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  </style>
 </head>
 <body>
 <header>
-    <h1>Receipt Tracker – CS4800</h1>
+  <span class="app-name">🧾 Receipt Tracker</span>
+  <div style="display:flex;align-items:center;">
+    <nav>
+      <a th:href="@{/}">Home</a>
+      <a th:href="@{/receipts}">Receipts</a>
+      <a th:href="@{/receipts/add}">+ Add Receipt</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-label">Dark</span>
+    </button>
+  </div>
 </header>
-<main>
-    <div class="nav-links">
-        <a th:href="@{/}">Home</a>
-        <a th:href="@{/receipts}">Receipts</a>
-        <a th:href="@{/receipts/add}">Add Receipt</a>
-    </div>
-    <hr/>
 
-    <h2 th:text="${title}">Receipt Tracker – CS4800</h2>
-    <p>Track receipts, refund windows, and basic payment info for our sprint‑2 demo.</p>
-</main>
+<div class="page">
+  <div class="hero">
+    <div class="kicker">CS 4800 Project</div>
+    <h1>Track every receipt.<br>Never miss a refund.</h1>
+    <p>Add receipts manually, track refund windows automatically, and monitor your EBT spending — all in one place.</p>
+    <div class="btn-row">
+      <a th:href="@{/receipts}" class="btn btn-primary">View Receipts</a>
+      <a th:href="@{/receipts/add}" class="btn btn-outline">+ Add Receipt</a>
+    </div>
+  </div>
+
+  <div class="section-label">What it does</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="f-icon">🧾</div>
+      <div class="f-title">Receipt List</div>
+      <div class="f-desc">Browse all receipts with search and filter by payment type or refund status.</div>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon">⏰</div>
+      <div class="f-title">Refund Tracking</div>
+      <div class="f-desc">Auto-calculated 30-day refund deadlines. See exactly which receipts are still returnable.</div>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon">💚</div>
+      <div class="f-title">EBT Monitoring</div>
+      <div class="f-desc">Running totals of EBT spend across all receipts shown in the dashboard summary.</div>
+    </div>
+    <div class="feature-card">
+      <div class="f-icon">✍️</div>
+      <div class="f-title">Manual Entry</div>
+      <div class="f-desc">Quickly log any receipt by vendor, amount, date, and payment type.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  const icon   = document.getElementById('theme-icon');
+  const lbl    = document.getElementById('theme-label');
+  function applyTheme(t) {
+    if (t === 'light') { document.body.classList.add('theme-light'); icon.textContent='☀️'; lbl.textContent='Light'; }
+    else { document.body.classList.remove('theme-light'); icon.textContent='🌙'; lbl.textContent='Dark'; }
+  }
+  applyTheme(localStorage.getItem('rt_theme') || 'dark');
+  toggle.addEventListener('click', () => {
+    const next = document.body.classList.contains('theme-light') ? 'dark' : 'light';
+    applyTheme(next); localStorage.setItem('rt_theme', next);
+  });
+</script>
 </body>
 </html>
