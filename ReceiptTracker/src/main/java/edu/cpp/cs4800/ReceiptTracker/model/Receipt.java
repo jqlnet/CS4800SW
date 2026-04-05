@@ -27,13 +27,22 @@ public class Receipt {
         this.description = description;
     }
 
-    public Long getId()             { return id; }
-    public String getVendor()       { return vendor; }
-    public double getAmount()       { return amount; }
-    public LocalDate getDate()      { return date; }
-    public String getPaymentType()  { return paymentType; }
+    // ── Getters ──
+    public Long getId()                  { return id; }
+    public String getVendor()            { return vendor; }
+    public double getAmount()            { return amount; }
+    public LocalDate getDate()           { return date; }
+    public String getPaymentType()       { return paymentType; }
     public LocalDate getRefundDeadline() { return refundDeadline; }
-    public String getDescription()  { return description; }
+    public String getDescription()       { return description; }
+
+    // ── Setters (needed for edit) ──
+    public void setVendor(String vendor)               { this.vendor = vendor; }
+    public void setAmount(double amount)               { this.amount = amount; }
+    public void setDate(LocalDate date)                { this.date = date; }
+    public void setPaymentType(String paymentType)     { this.paymentType = paymentType; }
+    public void setRefundDeadline(LocalDate refundDeadline) { this.refundDeadline = refundDeadline; }
+    public void setDescription(String description)     { this.description = description; }
 
     public boolean isRefundable() {
         return LocalDate.now().isBefore(refundDeadline) || LocalDate.now().isEqual(refundDeadline);

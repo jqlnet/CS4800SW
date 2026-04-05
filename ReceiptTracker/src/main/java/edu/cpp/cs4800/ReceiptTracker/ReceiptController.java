@@ -120,6 +120,46 @@ public class ReceiptController {
         return "redirect:/receipts";
     }
 
+    // ── EDIT: show pre-filled form ──
+    @GetMapping("/receipts/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Receipt receipt = receipts.stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+
+        if (receipt == null) return "redirect:/receipts";
+
+        model.addAttribute("title", "Edit Receipt");
+        model.addAttribute("receipt", receipt);
+        return "edit-receipt";
+    }
+
+    // ── EDIT: save changes ──
+    @PostMapping("/receipts/update/{id}")
+    public String updateReceipt(@PathVariable Long id,
+                                @RequestParam String vendor,
+                                @RequestParam double amount,
+                                @RequestParam String date,
+                                @RequestParam String paymentType,
+                                @RequestParam String refundDeadline,
+                                @RequestParam(required = false, defaultValue = "") String description) {
+
+        receipts.stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst()
+                .ifPresent(r -> {
+                    r.setVendor(vendor);
+                    r.setAmount(amount);
+                    r.setDate(LocalDate.parse(date));
+                    r.setPaymentType(paymentType);
+                    r.setRefundDeadline(LocalDate.parse(refundDeadline));
+                    r.setDescription(description);
+                });
+
+        return "redirect:/receipts";
+    }
+
     @PostMapping("/receipts/delete/{id}")
     public String deleteReceipt(@PathVariable Long id) {
         receipts.removeIf(r -> r.getId().equals(id));

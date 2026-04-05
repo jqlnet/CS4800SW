@@ -81,6 +81,14 @@
       border: 1px solid var(--border-soft);
     }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-edit-sm {
+      padding: 5px 14px; border-radius: 6px; font-size: 12px;
+      font-weight: 600; background: transparent; color: var(--text);
+      border: 1px solid var(--border-soft); cursor: pointer;
+      text-decoration: none; display: inline-block;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-edit-sm:hover { border-color: var(--accent); color: var(--accent); }
     .btn-danger-sm {
       padding: 5px 14px; border-radius: 6px; font-size: 12px;
       font-weight: 600; background: var(--danger); color: #fff;
@@ -149,7 +157,7 @@
     .td-date   { white-space: nowrap; }
     .td-desc {
       color: var(--muted); font-size: 12px;
-      max-width: 200px;
+      max-width: 180px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .td-desc.empty { font-style: italic; opacity: 0.5; }
@@ -292,6 +300,7 @@
               th:classappend="${receipt.description == null or receipt.description.isEmpty()} ? ' empty' : ''">—</td>
           <td>
             <div class="td-actions">
+              <a th:href="@{/receipts/edit/{id}(id=${receipt.id})}" class="btn-edit-sm">Edit</a>
               <form th:action="@{/receipts/delete/{id}(id=${receipt.id})}" method="post" style="display:inline;">
                 <button type="submit" class="btn-danger-sm"
                         onclick="return confirm('Delete this receipt?')">Delete</button>
