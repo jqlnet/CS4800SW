@@ -20,7 +20,7 @@ public class ReceiptController {
     private final AtomicLong idSequence = new AtomicLong(1);
 
     public ReceiptController() {
-        // Fake seed data — refund deadline auto-calculated as date + 30 days
+        // Seed data with varied refund windows
         receipts.add(new Receipt(
                 idSequence.getAndIncrement(),
                 "Coffee Shop",
@@ -43,7 +43,7 @@ public class ReceiptController {
                 58.75,
                 LocalDate.now().minusDays(5),
                 "EBT",
-                LocalDate.now().minusDays(5).plusDays(30)));
+                LocalDate.now().minusDays(5).plusDays(90)));
     }
 
     @GetMapping("/")
@@ -54,28 +54,24 @@ public class ReceiptController {
 
     @GetMapping("/receipts")
     public String getReceipts(Model model) {
-        // Total of all receipts
         double totalAmount = receipts.stream()
                 .mapToDouble(Receipt::getAmount)
                 .sum();
 
-        // Total of EBT-only receipts
         double ebtTotal = receipts.stream()
                 .filter(r -> "EBT".equalsIgnoreCase(r.getPaymentType()))
                 .mapToDouble(Receipt::getAmount)
                 .sum();
 
-        // Count of refundable receipts
         long refundableCount = receipts.stream()
                 .filter(Receipt::isRefundable)
                 .count();
-
-        model.addAttribute("refundableCount", refundableCount);
 
         model.addAttribute("title", "My Receipts");
         model.addAttribute("receipts", receipts);
         model.addAttribute("totalAmount", totalAmount);
         model.addAttribute("ebtTotal", ebtTotal);
+        model.addAttribute("refundableCount", refundableCount);
         return "receipts";
     }
 
@@ -87,12 +83,27 @@ public class ReceiptController {
 
     @PostMapping("/receipts")
     public String addReceipt(@RequestParam String vendor,
-            @RequestParam double amount,
-            @RequestParam String date,
-            @RequestParam String paymentType) {
+                             @RequestParam double amount,
+                             @RequestParam String date,
+                             @RequestParam String paymentType,
+                             @RequestParam String refundWindowPreset,
+                             @RequestParam(required = false) Integer customDays) {
+
         LocalDate purchaseDate = LocalDate.parse(date);
-        // Auto-calculate refund deadline as 30 days from purchase date
-        LocalDate refundDeadline = purchaseDate.plusDays(30);
+
+        // Determine refund window in days
+        int refundDays;
+        if ("custom".equals(refundWindowPreset) && customDays != null && customDays > 0) {
+            refundDays = customDays;
+        } else {
+            refundDays = switch (refundWindowPreset) {
+                case "60" -> 60;
+                case "90" -> 90;
+                default   -> 30;
+            };
+        }
+
+        LocalDate refundDeadline = purchaseDate.plusDays(refundDays);
 
         Receipt receipt = new Receipt(
                 idSequence.getAndIncrement(),
