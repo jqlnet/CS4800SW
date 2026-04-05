@@ -1,4 +1,4 @@
-package edu.cpp.cs4800.receipttracker.model;
+package edu.cpp.cs4800.ReceiptTracker.model;
 
 import java.time.LocalDate;
 

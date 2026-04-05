@@ -1,6 +1,6 @@
-package edu.cpp.cs4800.receipttracker;
+package edu.cpp.cs4800.ReceiptTracker;
 
-import edu.cpp.cs4800.receipttracker.model.Receipt;
+import edu.cpp.cs4800.ReceiptTracker.model.Receipt;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

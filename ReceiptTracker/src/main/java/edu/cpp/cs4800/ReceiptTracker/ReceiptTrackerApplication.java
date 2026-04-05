@@ -1,4 +1,4 @@
-package edu.cpp.cs4800.receipttracker;
+package edu.cpp.cs4800.ReceiptTracker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
