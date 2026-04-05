@@ -13,6 +13,7 @@
       --accent-soft: rgba(245,158,11,0.12);
       --text:        #e8e6e1;
       --muted:       #8a8680;
+      --danger:      #ef4444;
       --border-soft: rgba(200,190,170,0.12);
     }
     body.theme-light {
@@ -23,6 +24,7 @@
       --accent-soft: rgba(234,179,8,0.12);
       --text:        #4c4f69;
       --muted:       #6b7280;
+      --danger:      #d20f39;
       --border-soft: rgba(148,163,184,0.4);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,21 +66,26 @@
       text-transform: uppercase; letter-spacing: 0.5px;
       color: var(--muted); margin-bottom: 8px;
     }
-    .field input, .field select {
+    .field input, .field select, .field textarea {
       width: 100%; padding: 10px 14px; border-radius: 8px;
       border: 1px solid var(--border-soft);
       background: var(--bg); color: var(--text);
-      font-size: 14px; outline: none; transition: border-color 0.2s;
+      font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
     }
-    .field input:focus, .field select:focus { border-color: var(--accent); }
-    .field input::placeholder { color: var(--muted); }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--accent);
+    }
+    .field input::placeholder,
+    .field textarea::placeholder { color: var(--muted); }
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
-    /* custom days input — hidden by default */
-    .custom-days-wrap {
-      margin-top: 10px;
-      display: none;
-    }
+    .custom-days-wrap { margin-top: 10px; display: none; }
     .custom-days-wrap.visible { display: block; }
     .custom-days-wrap input {
       width: 100%; padding: 10px 14px; border-radius: 8px;
@@ -88,6 +95,21 @@
     }
     .custom-days-wrap input:focus { border-color: var(--accent); }
     .custom-days-wrap input::placeholder { color: var(--muted); }
+
+    .divider {
+      border: none; border-top: 1px solid var(--border-soft);
+      margin: 24px 0;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 16px;
+    }
+    .char-counter {
+      display: flex; justify-content: flex-end;
+      margin-top: 6px; font-size: 11px; color: var(--muted);
+      transition: color 0.2s;
+    }
+    .char-counter.warning { color: var(--danger); }
 
     .btn-row { display: flex; gap: 10px; margin-top: 8px; }
     .btn {
@@ -124,10 +146,13 @@
 <div class="page">
   <div class="page-kicker">CS 4800 Project</div>
   <div class="page-title">Add a Receipt</div>
-  <div class="page-sub">Fill in the details below. The refund deadline will be calculated from the purchase date.</div>
+  <div class="page-sub">Fill in the details below. The refund deadline is calculated from the purchase date.</div>
 
   <div class="form-card">
     <form th:action="@{/receipts}" method="post" id="receipt-form">
+
+      <!-- ── Receipt Info ── -->
+      <div class="section-label">Receipt Info</div>
       <div class="field">
         <label>Vendor</label>
         <input type="text" name="vendor" required placeholder="Target, Walmart, Amazon…"/>
@@ -148,8 +173,13 @@
           <option>EBT</option>
         </select>
       </div>
+
+      <hr class="divider"/>
+
+      <!-- ── Refund Window ── -->
+      <div class="section-label">Refund Window</div>
       <div class="field">
-        <label>Refund Window</label>
+        <label>Return Policy</label>
         <select name="refundWindowPreset" id="refund-preset">
           <option value="30">30 days</option>
           <option value="60">60 days</option>
@@ -162,6 +192,21 @@
         </div>
         <div class="hint">Refund deadline = purchase date + selected days</div>
       </div>
+
+      <hr class="divider"/>
+
+      <!-- ── Item Description ── -->
+      <div class="section-label">Item Description</div>
+      <div class="field">
+        <label>
+          Description
+          <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span>
+        </label>
+        <textarea name="description" id="description" maxlength="150"
+                  placeholder="e.g. Milk, eggs, bread — weekly grocery run"></textarea>
+        <div class="char-counter" id="char-counter">0 / 150</div>
+      </div>
+
       <div class="btn-row">
         <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-primary">Save Receipt</button>
@@ -198,6 +243,19 @@
       customWrap.classList.remove('visible');
       customInput.required = false;
       customInput.value = '';
+    }
+  });
+
+  /* ── Character counter ── */
+  const descArea  = document.getElementById('description');
+  const charCounter = document.getElementById('char-counter');
+  descArea.addEventListener('input', () => {
+    const len = descArea.value.length;
+    charCounter.textContent = `${len} / 150`;
+    if (len >= 140) {
+      charCounter.classList.add('warning');
+    } else {
+      charCounter.classList.remove('warning');
     }
   });
 

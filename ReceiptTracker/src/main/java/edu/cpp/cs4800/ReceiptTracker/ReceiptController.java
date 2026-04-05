@@ -20,14 +20,14 @@ public class ReceiptController {
     private final AtomicLong idSequence = new AtomicLong(1);
 
     public ReceiptController() {
-        // Seed data with varied refund windows
         receipts.add(new Receipt(
                 idSequence.getAndIncrement(),
                 "Coffee Shop",
                 4.55,
                 LocalDate.now().minusDays(2),
                 "Card",
-                LocalDate.now().minusDays(2).plusDays(30)));
+                LocalDate.now().minusDays(2).plusDays(30),
+                "Latte and muffin"));
 
         receipts.add(new Receipt(
                 idSequence.getAndIncrement(),
@@ -35,7 +35,8 @@ public class ReceiptController {
                 32.10,
                 LocalDate.now().minusDays(35),
                 "EBT",
-                LocalDate.now().minusDays(35).plusDays(30)));
+                LocalDate.now().minusDays(35).plusDays(30),
+                "Weekly groceries"));
 
         receipts.add(new Receipt(
                 idSequence.getAndIncrement(),
@@ -43,7 +44,8 @@ public class ReceiptController {
                 58.75,
                 LocalDate.now().minusDays(5),
                 "EBT",
-                LocalDate.now().minusDays(5).plusDays(90)));
+                LocalDate.now().minusDays(5).plusDays(90),
+                "Household supplies and snacks"));
     }
 
     @GetMapping("/")
@@ -87,11 +89,11 @@ public class ReceiptController {
                              @RequestParam String date,
                              @RequestParam String paymentType,
                              @RequestParam String refundWindowPreset,
-                             @RequestParam(required = false) Integer customDays) {
+                             @RequestParam(required = false) Integer customDays,
+                             @RequestParam(required = false, defaultValue = "") String description) {
 
         LocalDate purchaseDate = LocalDate.parse(date);
 
-        // Determine refund window in days
         int refundDays;
         if ("custom".equals(refundWindowPreset) && customDays != null && customDays > 0) {
             refundDays = customDays;
@@ -111,7 +113,8 @@ public class ReceiptController {
                 amount,
                 purchaseDate,
                 paymentType,
-                refundDeadline);
+                refundDeadline,
+                description);
 
         receipts.add(receipt);
         return "redirect:/receipts";
