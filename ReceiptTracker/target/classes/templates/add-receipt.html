@@ -70,21 +70,13 @@
       width: 100%; padding: 10px 14px; border-radius: 8px;
       border: 1px solid var(--border-soft);
       background: var(--bg); color: var(--text);
-      font-size: 14px; outline: none;
-      transition: border-color 0.2s;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
       font-family: inherit;
     }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: var(--accent);
-    }
-    .field input::placeholder,
-    .field textarea::placeholder { color: var(--muted); }
-    .field textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+    .field textarea { resize: vertical; min-height: 80px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
-
     .custom-days-wrap { margin-top: 10px; display: none; }
     .custom-days-wrap.visible { display: block; }
     .custom-days-wrap input {
@@ -95,22 +87,33 @@
     }
     .custom-days-wrap input:focus { border-color: var(--accent); }
     .custom-days-wrap input::placeholder { color: var(--muted); }
-
-    .divider {
-      border: none; border-top: 1px solid var(--border-soft);
-      margin: 24px 0;
-    }
+    .divider { border: none; border-top: 1px solid var(--border-soft); margin: 24px 0; }
     .section-label {
       font-size: 11px; font-weight: 600; text-transform: uppercase;
       letter-spacing: 1px; color: var(--muted); margin-bottom: 16px;
     }
     .char-counter {
       display: flex; justify-content: flex-end;
-      margin-top: 6px; font-size: 11px; color: var(--muted);
-      transition: color 0.2s;
+      margin-top: 6px; font-size: 11px; color: var(--muted); transition: color 0.2s;
     }
     .char-counter.warning { color: var(--danger); }
-
+    .toggle-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      border: 1px solid var(--border-soft); background: var(--bg);
+    }
+    .toggle-row input[type="checkbox"] {
+      width: 18px; height: 18px; cursor: pointer;
+      accent-color: var(--muted);
+    }
+    .toggle-row label {
+      font-size: 13px; color: var(--text);
+      cursor: pointer; margin: 0; text-transform: none;
+      letter-spacing: 0; font-weight: 500;
+    }
+    .toggle-row .sublabel {
+      font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
     .btn-row { display: flex; gap: 10px; margin-top: 8px; }
     .btn {
       flex: 1; padding: 11px 18px; border-radius: 999px;
@@ -198,8 +201,7 @@
       <!-- ── Item Description ── -->
       <div class="section-label">Item Description</div>
       <div class="field">
-        <label>
-          Description
+        <label>Description
           <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span>
         </label>
         <textarea name="description" id="description" maxlength="150"
@@ -207,16 +209,29 @@
         <div class="char-counter" id="char-counter">0 / 150</div>
       </div>
 
-      <div class="btn-row">
-        <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
-        <button type="submit" class="btn btn-primary">Save Receipt</button>
+      <hr class="divider"/>
+
+      <!-- ── Return Eligibility ── -->
+      <div class="section-label">Return Eligibility</div>
+      <div class="toggle-row">
+        <input type="checkbox" name="nonReturnable" id="non-returnable-check"/>
+        <div>
+          <label for="non-returnable-check">Non-returnable item</label>
+          <div class="sublabel">e.g. food, gas, gift cards, perishables</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="btn-row">
+          <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
+          <button type="submit" class="btn btn-primary">Save Receipt</button>
+        </div>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  /* ── Theme ── */
   const toggle = document.getElementById('theme-toggle');
   const icon   = document.getElementById('theme-icon');
   const lbl    = document.getElementById('theme-label');
@@ -230,11 +245,9 @@
     applyTheme(next); localStorage.setItem('rt_theme', next);
   });
 
-  /* ── Refund window toggle ── */
   const preset      = document.getElementById('refund-preset');
   const customWrap  = document.getElementById('custom-days-wrap');
   const customInput = document.getElementById('custom-days-input');
-
   preset.addEventListener('change', () => {
     if (preset.value === 'custom') {
       customWrap.classList.add('visible');
@@ -246,20 +259,14 @@
     }
   });
 
-  /* ── Character counter ── */
-  const descArea  = document.getElementById('description');
+  const descArea    = document.getElementById('description');
   const charCounter = document.getElementById('char-counter');
   descArea.addEventListener('input', () => {
     const len = descArea.value.length;
     charCounter.textContent = `${len} / 150`;
-    if (len >= 140) {
-      charCounter.classList.add('warning');
-    } else {
-      charCounter.classList.remove('warning');
-    }
+    charCounter.classList.toggle('warning', len >= 140);
   });
 
-  /* ── Validate custom days before submit ── */
   document.getElementById('receipt-form').addEventListener('submit', (e) => {
     if (preset.value === 'custom' && (!customInput.value || customInput.value < 1)) {
       e.preventDefault();

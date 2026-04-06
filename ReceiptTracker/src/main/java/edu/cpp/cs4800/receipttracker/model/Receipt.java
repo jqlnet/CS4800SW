@@ -11,6 +11,7 @@ public class Receipt {
     private LocalDate refundDeadline;
     private String description;
     private boolean refunded;
+    private boolean nonReturnable;
 
     public Receipt(Long id,
                    String vendor,
@@ -27,6 +28,7 @@ public class Receipt {
         this.refundDeadline = refundDeadline;
         this.description = description;
         this.refunded = false;
+        this.nonReturnable = false;
     }
 
     // ── Getters ──
@@ -38,6 +40,7 @@ public class Receipt {
     public LocalDate getRefundDeadline() { return refundDeadline; }
     public String getDescription()       { return description; }
     public boolean isRefunded()          { return refunded; }
+    public boolean isNonReturnable()     { return nonReturnable; }
 
     // ── Setters ──
     public void setVendor(String vendor)                    { this.vendor = vendor; }
@@ -47,18 +50,20 @@ public class Receipt {
     public void setRefundDeadline(LocalDate refundDeadline) { this.refundDeadline = refundDeadline; }
     public void setDescription(String description)          { this.description = description; }
     public void setRefunded(boolean refunded)               { this.refunded = refunded; }
+    public void setNonReturnable(boolean nonReturnable)     { this.nonReturnable = nonReturnable; }
 
     // ── Status logic ──
-    public boolean isRefundable() {
-        if (refunded) return false;
-        return LocalDate.now().isBefore(refundDeadline) || LocalDate.now().isEqual(refundDeadline);
-    }
-
-    // Returns one of: "refunded", "refundable", "expired"
+    // Returns one of: "na", "refunded", "refundable", "expired"
     public String getStatus() {
+        if (nonReturnable) return "na";
         if (refunded) return "refunded";
         if (LocalDate.now().isBefore(refundDeadline) || LocalDate.now().isEqual(refundDeadline))
             return "refundable";
         return "expired";
+    }
+
+    public boolean isRefundable() {
+        if (nonReturnable || refunded) return false;
+        return LocalDate.now().isBefore(refundDeadline) || LocalDate.now().isEqual(refundDeadline);
     }
 }

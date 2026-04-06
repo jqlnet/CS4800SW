@@ -89,22 +89,22 @@
       font-size: 11px; font-weight: 600; text-transform: uppercase;
       letter-spacing: 1px; color: var(--muted); margin-bottom: 16px;
     }
-    /* Refunded toggle row */
-    .refunded-row {
+    .toggle-row {
       display: flex; align-items: center; gap: 12px;
       padding: 14px 16px; border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      background: var(--bg);
+      border: 1px solid var(--border-soft); background: var(--bg);
+      margin-bottom: 14px;
     }
-    .refunded-row input[type="checkbox"] {
+    .toggle-row input[type="checkbox"] {
       width: 18px; height: 18px; cursor: pointer;
-      accent-color: var(--refunded);
     }
-    .refunded-row label {
+    .toggle-row label {
       font-size: 13px; color: var(--text);
       cursor: pointer; margin: 0; text-transform: none;
       letter-spacing: 0; font-weight: 500;
     }
+    .toggle-row .sublabel { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .toggle-row.refunded-row input { accent-color: var(--refunded); }
     .btn-row { display: flex; gap: 10px; margin-top: 8px; }
     .btn {
       flex: 1; padding: 11px 18px; border-radius: 999px;
@@ -193,12 +193,23 @@
 
       <hr class="divider"/>
 
-      <!-- ── Refund Status ── -->
-      <div class="section-label">Refund Status</div>
-      <div class="refunded-row">
+      <!-- ── Status Overrides ── -->
+      <div class="section-label">Status Overrides</div>
+      <div class="toggle-row">
+        <input type="checkbox" name="nonReturnable" id="non-returnable-check"
+               th:checked="${receipt.nonReturnable}"/>
+        <div>
+          <label for="non-returnable-check">Non-returnable item</label>
+          <div class="sublabel">e.g. food, gas, gift cards, perishables</div>
+        </div>
+      </div>
+      <div class="toggle-row refunded-row">
         <input type="checkbox" name="refunded" id="refunded-check"
                th:checked="${receipt.refunded}"/>
-        <label for="refunded-check">Mark this receipt as refunded</label>
+        <div>
+          <label for="refunded-check">Mark this receipt as refunded</label>
+          <div class="sublabel">Item has been returned and refund received</div>
+        </div>
       </div>
 
       <div style="margin-top: 24px;">

@@ -95,7 +95,8 @@ public class ReceiptController {
                              @RequestParam String paymentType,
                              @RequestParam String refundWindowPreset,
                              @RequestParam(required = false) Integer customDays,
-                             @RequestParam(required = false, defaultValue = "") String description) {
+                             @RequestParam(required = false, defaultValue = "") String description,
+                             @RequestParam(required = false) String nonReturnable) {
 
         LocalDate purchaseDate = LocalDate.parse(date);
 
@@ -121,6 +122,7 @@ public class ReceiptController {
                 refundDeadline,
                 description);
 
+        receipt.setNonReturnable("on".equals(nonReturnable));
         receipts.add(receipt);
         return "redirect:/receipts";
     }
@@ -149,7 +151,8 @@ public class ReceiptController {
                                 @RequestParam String paymentType,
                                 @RequestParam String refundDeadline,
                                 @RequestParam(required = false, defaultValue = "") String description,
-                                @RequestParam(required = false) String refunded) {
+                                @RequestParam(required = false) String refunded,
+                                @RequestParam(required = false) String nonReturnable) {
 
         receipts.stream()
                 .filter(r -> r.getId().equals(id))
@@ -162,6 +165,7 @@ public class ReceiptController {
                     r.setRefundDeadline(LocalDate.parse(refundDeadline));
                     r.setDescription(description);
                     r.setRefunded("on".equals(refunded));
+                    r.setNonReturnable("on".equals(nonReturnable));
                 });
 
         return "redirect:/receipts";

@@ -17,6 +17,7 @@
       --success:     #4ade80;
       --ebt-color:   #4ade80;
       --refunded:    #818cf8;
+      --na-color:    #6b7280;
       --border-soft: rgba(200,190,170,0.12);
       --table-row-alt: rgba(200,190,170,0.03);
     }
@@ -32,6 +33,7 @@
       --success:     #16a34a;
       --ebt-color:   #e11d74;
       --refunded:    #4f46e5;
+      --na-color:    #9ca3af;
       --border-soft: rgba(148,163,184,0.4);
       --table-row-alt: rgba(0,0,0,0.02);
     }
@@ -112,7 +114,7 @@
     }
     .btn-danger-sm:hover { opacity: 0.85; }
     .stat-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 14px; margin-bottom: 28px;
     }
     .stat-card {
@@ -121,11 +123,12 @@
     }
     .stat-card:hover { border-color: var(--accent); }
     .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-    .stat-value             { font-size: 28px; font-weight: 800; }
-    .stat-value.accent      { color: var(--accent); }
-    .stat-value.ebt-val     { color: var(--ebt-color); }
-    .stat-value.success     { color: var(--success); }
+    .stat-value              { font-size: 28px; font-weight: 800; }
+    .stat-value.accent       { color: var(--accent); }
+    .stat-value.ebt-val      { color: var(--ebt-color); }
+    .stat-value.success      { color: var(--success); }
     .stat-value.refunded-val { color: var(--refunded); }
+    .stat-value.na-val       { color: var(--na-color); }
     .filter-bar {
       background: var(--card); border: 1px solid var(--border-soft);
       border-radius: 14px; padding: 20px 22px; margin-bottom: 20px;
@@ -185,6 +188,7 @@
     .chip-exp      { border-color: var(--danger);   color: var(--danger);   background: rgba(239,68,68,0.08); }
     .chip-accent   { border-color: var(--accent);   color: var(--accent);   background: var(--accent-soft); }
     .chip-refunded { border-color: var(--refunded); color: var(--refunded); background: rgba(129,140,248,0.10); }
+    .chip-na       { border-color: var(--na-color); color: var(--na-color); background: rgba(107,114,128,0.10); }
     .td-actions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
     .empty-row td { text-align: center; padding: 48px 16px; color: var(--muted); font-size: 14px; }
   </style>
@@ -269,6 +273,7 @@
           <option value="refundable">Refundable</option>
           <option value="expired">Expired</option>
           <option value="refunded">Refunded</option>
+          <option value="na">N/A</option>
         </select>
       </div>
     </div>
@@ -312,8 +317,12 @@
           <td class="td-date" th:text="${receipt.refundDeadline}">—</td>
           <td>
             <span class="chip"
-                  th:text="${receipt.status == 'refunded'} ? 'Refunded' : (${receipt.status == 'refundable'} ? 'Refundable' : 'Expired')"
-                  th:classappend="${receipt.status == 'refunded'} ? ' chip-refunded' : (${receipt.status == 'refundable'} ? ' chip-ok' : ' chip-exp')">—</span>
+                  th:text="${receipt.status == 'na'} ? 'N/A' :
+                            (${receipt.status == 'refunded'} ? 'Refunded' :
+                            (${receipt.status == 'refundable'} ? 'Refundable' : 'Expired'))"
+                  th:classappend="${receipt.status == 'na'} ? ' chip-na' :
+                                  (${receipt.status == 'refunded'} ? ' chip-refunded' :
+                                  (${receipt.status == 'refundable'} ? ' chip-ok' : ' chip-exp'))">—</span>
           </td>
           <td class="td-amount"
               th:text="'$' + ${#numbers.formatDecimal(receipt.amount, 1, '2', 'POINT')}">$0.00</td>
@@ -323,7 +332,7 @@
           <td>
             <div class="td-actions">
               <a th:href="@{/receipts/edit/{id}(id=${receipt.id})}" class="btn-edit-sm">Edit</a>
-              <form th:if="${!receipt.refunded}"
+              <form th:if="${!receipt.refunded and !receipt.nonReturnable}"
                     th:action="@{/receipts/refund/{id}(id=${receipt.id})}" method="post" style="display:inline;">
                 <button type="submit" class="btn-refund-sm">✓ Refunded</button>
               </form>
