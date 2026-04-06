@@ -121,10 +121,10 @@
     }
     .stat-card:hover { border-color: var(--accent); }
     .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-    .stat-value         { font-size: 28px; font-weight: 800; }
-    .stat-value.accent  { color: var(--accent); }
-    .stat-value.ebt-val { color: var(--ebt-color); }
-    .stat-value.success { color: var(--success); }
+    .stat-value             { font-size: 28px; font-weight: 800; }
+    .stat-value.accent      { color: var(--accent); }
+    .stat-value.ebt-val     { color: var(--ebt-color); }
+    .stat-value.success     { color: var(--success); }
     .stat-value.refunded-val { color: var(--refunded); }
     .filter-bar {
       background: var(--card); border: 1px solid var(--border-soft);
@@ -242,8 +242,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">Refunded</div>
-      <div class="stat-value refunded-val"
-           th:text="${receipts.stream().filter(r -> r.refunded).count()}">0</div>
+      <div class="stat-value refunded-val" th:text="${refundedCount}">0</div>
     </div>
   </div>
 
@@ -324,7 +323,6 @@
           <td>
             <div class="td-actions">
               <a th:href="@{/receipts/edit/{id}(id=${receipt.id})}" class="btn-edit-sm">Edit</a>
-              <!-- Mark Refunded / Undo -->
               <form th:if="${!receipt.refunded}"
                     th:action="@{/receipts/refund/{id}(id=${receipt.id})}" method="post" style="display:inline;">
                 <button type="submit" class="btn-refund-sm">✓ Refunded</button>

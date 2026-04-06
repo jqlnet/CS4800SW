@@ -69,11 +69,16 @@ public class ReceiptController {
                 .filter(r -> "refundable".equals(r.getStatus()))
                 .count();
 
+        long refundedCount = receipts.stream()
+                .filter(Receipt::isRefunded)
+                .count();
+
         model.addAttribute("title", "My Receipts");
         model.addAttribute("receipts", receipts);
         model.addAttribute("totalAmount", totalAmount);
         model.addAttribute("ebtTotal", ebtTotal);
         model.addAttribute("refundableCount", refundableCount);
+        model.addAttribute("refundedCount", refundedCount);
         return "receipts";
     }
 
