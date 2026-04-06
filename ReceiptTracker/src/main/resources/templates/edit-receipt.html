@@ -14,6 +14,7 @@
       --text:        #e8e6e1;
       --muted:       #8a8680;
       --danger:      #ef4444;
+      --refunded:    #818cf8;
       --border-soft: rgba(200,190,170,0.12);
     }
     body.theme-light {
@@ -25,6 +26,7 @@
       --text:        #4c4f69;
       --muted:       #6b7280;
       --danger:      #d20f39;
+      --refunded:    #4f46e5;
       --border-soft: rgba(148,163,184,0.4);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,27 +72,38 @@
       width: 100%; padding: 10px 14px; border-radius: 8px;
       border: 1px solid var(--border-soft);
       background: var(--bg); color: var(--text);
-      font-size: 14px; outline: none;
-      transition: border-color 0.2s;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
       font-family: inherit;
     }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: var(--accent);
-    }
-    .field input::placeholder,
-    .field textarea::placeholder { color: var(--muted); }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
     .field textarea { resize: vertical; min-height: 80px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
     .char-counter {
       display: flex; justify-content: flex-end;
-      margin-top: 6px; font-size: 11px; color: var(--muted);
-      transition: color 0.2s;
+      margin-top: 6px; font-size: 11px; color: var(--muted); transition: color 0.2s;
     }
     .char-counter.warning { color: var(--danger); }
     .divider { border: none; border-top: 1px solid var(--border-soft); margin: 24px 0; }
     .section-label {
       font-size: 11px; font-weight: 600; text-transform: uppercase;
       letter-spacing: 1px; color: var(--muted); margin-bottom: 16px;
+    }
+    /* Refunded toggle row */
+    .refunded-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg);
+    }
+    .refunded-row input[type="checkbox"] {
+      width: 18px; height: 18px; cursor: pointer;
+      accent-color: var(--refunded);
+    }
+    .refunded-row label {
+      font-size: 13px; color: var(--text);
+      cursor: pointer; margin: 0; text-transform: none;
+      letter-spacing: 0; font-weight: 500;
     }
     .btn-row { display: flex; gap: 10px; margin-top: 8px; }
     .btn {
@@ -149,9 +162,9 @@
       <div class="field">
         <label>Payment Type</label>
         <select name="paymentType">
-          <option value="Card"  th:selected="${receipt.paymentType == 'Card'}">Card</option>
-          <option value="Cash"  th:selected="${receipt.paymentType == 'Cash'}">Cash</option>
-          <option value="EBT"   th:selected="${receipt.paymentType == 'EBT'}">EBT</option>
+          <option value="Card" th:selected="${receipt.paymentType == 'Card'}">Card</option>
+          <option value="Cash" th:selected="${receipt.paymentType == 'Cash'}">Cash</option>
+          <option value="EBT"  th:selected="${receipt.paymentType == 'EBT'}">EBT</option>
         </select>
       </div>
 
@@ -170,8 +183,7 @@
       <!-- ── Item Description ── -->
       <div class="section-label">Item Description</div>
       <div class="field">
-        <label>
-          Description
+        <label>Description
           <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span>
         </label>
         <textarea name="description" id="description" maxlength="150"
@@ -179,16 +191,27 @@
         <div class="char-counter" id="char-counter">0 / 150</div>
       </div>
 
-      <div class="btn-row">
-        <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+      <hr class="divider"/>
+
+      <!-- ── Refund Status ── -->
+      <div class="section-label">Refund Status</div>
+      <div class="refunded-row">
+        <input type="checkbox" name="refunded" id="refunded-check"
+               th:checked="${receipt.refunded}"/>
+        <label for="refunded-check">Mark this receipt as refunded</label>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="btn-row">
+          <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
       </div>
     </form>
   </div>
 </div>
 
 <script>
-  /* ── Theme ── */
   const toggle = document.getElementById('theme-toggle');
   const icon   = document.getElementById('theme-icon');
   const lbl    = document.getElementById('theme-label');
@@ -202,7 +225,6 @@
     applyTheme(next); localStorage.setItem('rt_theme', next);
   });
 
-  /* ── Character counter (init with existing length) ── */
   const descArea    = document.getElementById('description');
   const charCounter = document.getElementById('char-counter');
   function updateCounter() {
@@ -211,7 +233,7 @@
     charCounter.classList.toggle('warning', len >= 140);
   }
   descArea.addEventListener('input', updateCounter);
-  updateCounter(); // run on load so count reflects pre-filled text
+  updateCounter();
 </script>
 </body>
 </html>

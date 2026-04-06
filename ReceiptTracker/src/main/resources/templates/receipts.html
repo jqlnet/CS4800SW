@@ -16,6 +16,7 @@
       --danger:      #ef4444;
       --success:     #4ade80;
       --ebt-color:   #4ade80;
+      --refunded:    #818cf8;
       --border-soft: rgba(200,190,170,0.12);
       --table-row-alt: rgba(200,190,170,0.03);
     }
@@ -30,6 +31,7 @@
       --danger:      #d20f39;
       --success:     #16a34a;
       --ebt-color:   #e11d74;
+      --refunded:    #4f46e5;
       --border-soft: rgba(148,163,184,0.4);
       --table-row-alt: rgba(0,0,0,0.02);
     }
@@ -82,21 +84,35 @@
     }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
     .btn-edit-sm {
-      padding: 5px 14px; border-radius: 6px; font-size: 12px;
+      padding: 5px 10px; border-radius: 6px; font-size: 11px;
       font-weight: 600; background: transparent; color: var(--text);
       border: 1px solid var(--border-soft); cursor: pointer;
       text-decoration: none; display: inline-block;
       transition: border-color 0.2s, color 0.2s;
     }
     .btn-edit-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-refund-sm {
+      padding: 5px 10px; border-radius: 6px; font-size: 11px;
+      font-weight: 600; background: rgba(129,140,248,0.12);
+      color: var(--refunded); border: 1px solid rgba(129,140,248,0.3);
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-refund-sm:hover { opacity: 0.8; }
+    .btn-unrefund-sm {
+      padding: 5px 10px; border-radius: 6px; font-size: 11px;
+      font-weight: 600; background: rgba(129,140,248,0.08);
+      color: var(--muted); border: 1px solid var(--border-soft);
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-unrefund-sm:hover { opacity: 0.8; }
     .btn-danger-sm {
-      padding: 5px 14px; border-radius: 6px; font-size: 12px;
+      padding: 5px 10px; border-radius: 6px; font-size: 11px;
       font-weight: 600; background: var(--danger); color: #fff;
       border: none; cursor: pointer; transition: opacity 0.2s;
     }
     .btn-danger-sm:hover { opacity: 0.85; }
     .stat-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 14px; margin-bottom: 28px;
     }
     .stat-card {
@@ -109,6 +125,7 @@
     .stat-value.accent  { color: var(--accent); }
     .stat-value.ebt-val { color: var(--ebt-color); }
     .stat-value.success { color: var(--success); }
+    .stat-value.refunded-val { color: var(--refunded); }
     .filter-bar {
       background: var(--card); border: 1px solid var(--border-soft);
       border-radius: 14px; padding: 20px 22px; margin-bottom: 20px;
@@ -138,10 +155,10 @@
       background: var(--card); border: 1px solid var(--border-soft);
       border-radius: 14px; overflow: hidden; overflow-x: auto;
     }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
     thead tr { border-bottom: 1px solid var(--border-soft); }
     thead th {
-      text-align: left; padding: 13px 14px;
+      text-align: left; padding: 13px 12px;
       font-size: 11px; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
       white-space: nowrap;
@@ -151,13 +168,12 @@
     }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--table-row-alt); }
-    tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
+    tbody td { padding: 11px 12px; font-size: 13px; vertical-align: middle; }
     .td-vendor { font-weight: 600; white-space: nowrap; }
     .td-amount { font-weight: 700; white-space: nowrap; }
     .td-date   { white-space: nowrap; }
     .td-desc {
-      color: var(--muted); font-size: 12px;
-      max-width: 180px;
+      color: var(--muted); font-size: 12px; max-width: 160px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .td-desc.empty { font-style: italic; opacity: 0.5; }
@@ -165,10 +181,11 @@
       display: inline-block; padding: 4px 10px; border-radius: 999px;
       font-size: 11px; font-weight: 600; border: 1px solid; white-space: nowrap;
     }
-    .chip-ok     { border-color: var(--success); color: var(--success); background: rgba(74,222,128,0.08); }
-    .chip-exp    { border-color: var(--danger);  color: var(--danger);  background: rgba(239,68,68,0.08); }
-    .chip-accent { border-color: var(--accent);  color: var(--accent);  background: var(--accent-soft); }
-    .td-actions { display: flex; gap: 6px; align-items: center; }
+    .chip-ok       { border-color: var(--success);  color: var(--success);  background: rgba(74,222,128,0.08); }
+    .chip-exp      { border-color: var(--danger);   color: var(--danger);   background: rgba(239,68,68,0.08); }
+    .chip-accent   { border-color: var(--accent);   color: var(--accent);   background: var(--accent-soft); }
+    .chip-refunded { border-color: var(--refunded); color: var(--refunded); background: rgba(129,140,248,0.10); }
+    .td-actions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
     .empty-row td { text-align: center; padding: 48px 16px; color: var(--muted); font-size: 14px; }
   </style>
 </head>
@@ -223,6 +240,11 @@
       <div class="stat-label">Refundable</div>
       <div class="stat-value success" th:text="${refundableCount}">0</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Refunded</div>
+      <div class="stat-value refunded-val"
+           th:text="${receipts.stream().filter(r -> r.refunded).count()}">0</div>
+    </div>
   </div>
 
   <!-- Filter bar -->
@@ -247,6 +269,7 @@
           <option value="">All</option>
           <option value="refundable">Refundable</option>
           <option value="expired">Expired</option>
+          <option value="refunded">Refunded</option>
         </select>
       </div>
     </div>
@@ -278,7 +301,7 @@
         <tr th:each="receipt : ${receipts}"
             th:attr="data-vendor=${receipt.vendor},
                      data-payment=${receipt.paymentType},
-                     data-status=${receipt.refundable ? 'refundable' : 'expired'},
+                     data-status=${receipt.status},
                      data-desc=${receipt.description}">
           <td class="td-vendor" th:text="${receipt.vendor}">Vendor</td>
           <td class="td-date"   th:text="${receipt.date}">2026-01-01</td>
@@ -290,8 +313,8 @@
           <td class="td-date" th:text="${receipt.refundDeadline}">—</td>
           <td>
             <span class="chip"
-                  th:text="${receipt.refundable} ? 'Refundable' : 'Expired'"
-                  th:classappend="${receipt.refundable} ? ' chip-ok' : ' chip-exp'">—</span>
+                  th:text="${receipt.status == 'refunded'} ? 'Refunded' : (${receipt.status == 'refundable'} ? 'Refundable' : 'Expired')"
+                  th:classappend="${receipt.status == 'refunded'} ? ' chip-refunded' : (${receipt.status == 'refundable'} ? ' chip-ok' : ' chip-exp')">—</span>
           </td>
           <td class="td-amount"
               th:text="'$' + ${#numbers.formatDecimal(receipt.amount, 1, '2', 'POINT')}">$0.00</td>
@@ -301,6 +324,15 @@
           <td>
             <div class="td-actions">
               <a th:href="@{/receipts/edit/{id}(id=${receipt.id})}" class="btn-edit-sm">Edit</a>
+              <!-- Mark Refunded / Undo -->
+              <form th:if="${!receipt.refunded}"
+                    th:action="@{/receipts/refund/{id}(id=${receipt.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-refund-sm">✓ Refunded</button>
+              </form>
+              <form th:if="${receipt.refunded}"
+                    th:action="@{/receipts/unrefund/{id}(id=${receipt.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-unrefund-sm">Undo</button>
+              </form>
               <form th:action="@{/receipts/delete/{id}(id=${receipt.id})}" method="post" style="display:inline;">
                 <button type="submit" class="btn-danger-sm"
                         onclick="return confirm('Delete this receipt?')">Delete</button>
