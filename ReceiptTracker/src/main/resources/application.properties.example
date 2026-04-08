@@ -1,9 +1,9 @@
 spring.application.name=ReceiptTracker
 
-# MySQL Database Connection
-spring.datasource.url=jdbc:mysql://localhost:3306/receipttracker
+# Railway MySQL Database Connection
+spring.datasource.url=jdbc:mysql://YOUR_RAILWAY_HOST:YOUR_PORT/railway
 spring.datasource.username=root
-spring.datasource.password=YOUR_MYSQL_PASSWORD_HERE
+spring.datasource.password=YOUR_RAILWAY_PASSWORD
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 # JPA / Hibernate
