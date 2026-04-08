@@ -1,6 +1,8 @@
 package edu.cpp.cs4800.receipttracker;
 
 import edu.cpp.cs4800.receipttracker.model.Receipt;
+import edu.cpp.cs4800.receipttracker.model.ReceiptRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,44 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Controller
 public class ReceiptController {
 
-    private final List<Receipt> receipts = new ArrayList<>();
-    private final AtomicLong idSequence = new AtomicLong(1);
-
-    public ReceiptController() {
-        receipts.add(new Receipt(
-                idSequence.getAndIncrement(),
-                "Coffee Shop",
-                4.55,
-                LocalDate.now().minusDays(2),
-                "Card",
-                LocalDate.now().minusDays(2).plusDays(30),
-                "Latte and muffin"));
-
-        receipts.add(new Receipt(
-                idSequence.getAndIncrement(),
-                "Grocery Store",
-                32.10,
-                LocalDate.now().minusDays(35),
-                "EBT",
-                LocalDate.now().minusDays(35).plusDays(30),
-                "Weekly groceries"));
-
-        receipts.add(new Receipt(
-                idSequence.getAndIncrement(),
-                "Walmart",
-                58.75,
-                LocalDate.now().minusDays(5),
-                "EBT",
-                LocalDate.now().minusDays(5).plusDays(90),
-                "Household supplies and snacks"));
-    }
+    @Autowired
+    private ReceiptRepository receiptRepository;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -56,6 +27,8 @@ public class ReceiptController {
 
     @GetMapping("/receipts")
     public String getReceipts(Model model) {
+        List<Receipt> receipts = receiptRepository.findAll();
+
         double totalAmount = receipts.stream()
                 .mapToDouble(Receipt::getAmount)
                 .sum();
@@ -114,7 +87,6 @@ public class ReceiptController {
         LocalDate refundDeadline = purchaseDate.plusDays(refundDays);
 
         Receipt receipt = new Receipt(
-                idSequence.getAndIncrement(),
                 vendor,
                 amount,
                 purchaseDate,
@@ -123,20 +95,15 @@ public class ReceiptController {
                 description);
 
         receipt.setNonReturnable("on".equals(nonReturnable));
-        receipts.add(receipt);
+        receiptRepository.save(receipt);
         return "redirect:/receipts";
     }
 
     // ── EDIT: show pre-filled form ──
     @GetMapping("/receipts/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
-        Receipt receipt = receipts.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-
+        Receipt receipt = receiptRepository.findById(id).orElse(null);
         if (receipt == null) return "redirect:/receipts";
-
         model.addAttribute("title", "Edit Receipt");
         model.addAttribute("receipt", receipt);
         return "edit-receipt";
@@ -154,46 +121,45 @@ public class ReceiptController {
                                 @RequestParam(required = false) String refunded,
                                 @RequestParam(required = false) String nonReturnable) {
 
-        receipts.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .ifPresent(r -> {
-                    r.setVendor(vendor);
-                    r.setAmount(amount);
-                    r.setDate(LocalDate.parse(date));
-                    r.setPaymentType(paymentType);
-                    r.setRefundDeadline(LocalDate.parse(refundDeadline));
-                    r.setDescription(description);
-                    r.setRefunded("on".equals(refunded));
-                    r.setNonReturnable("on".equals(nonReturnable));
-                });
+        Receipt receipt = receiptRepository.findById(id).orElse(null);
+        if (receipt == null) return "redirect:/receipts";
 
+        receipt.setVendor(vendor);
+        receipt.setAmount(amount);
+        receipt.setDate(LocalDate.parse(date));
+        receipt.setPaymentType(paymentType);
+        receipt.setRefundDeadline(LocalDate.parse(refundDeadline));
+        receipt.setDescription(description);
+        receipt.setRefunded("on".equals(refunded));
+        receipt.setNonReturnable("on".equals(nonReturnable));
+
+        receiptRepository.save(receipt);
         return "redirect:/receipts";
     }
 
     // ── MARK REFUNDED ──
     @PostMapping("/receipts/refund/{id}")
     public String markRefunded(@PathVariable Long id) {
-        receipts.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .ifPresent(r -> r.setRefunded(true));
+        receiptRepository.findById(id).ifPresent(r -> {
+            r.setRefunded(true);
+            receiptRepository.save(r);
+        });
         return "redirect:/receipts";
     }
 
     // ── UNMARK REFUNDED ──
     @PostMapping("/receipts/unrefund/{id}")
     public String unmarkRefunded(@PathVariable Long id) {
-        receipts.stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .ifPresent(r -> r.setRefunded(false));
+        receiptRepository.findById(id).ifPresent(r -> {
+            r.setRefunded(false);
+            receiptRepository.save(r);
+        });
         return "redirect:/receipts";
     }
 
     @PostMapping("/receipts/delete/{id}")
     public String deleteReceipt(@PathVariable Long id) {
-        receipts.removeIf(r -> r.getId().equals(id));
+        receiptRepository.deleteById(id);
         return "redirect:/receipts";
     }
 }

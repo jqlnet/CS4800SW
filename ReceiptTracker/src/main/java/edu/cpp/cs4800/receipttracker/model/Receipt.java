@@ -1,26 +1,37 @@
 package edu.cpp.cs4800.receipttracker.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "receipts")
 public class Receipt {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String vendor;
     private double amount;
     private LocalDate date;
     private String paymentType;
     private LocalDate refundDeadline;
+
+    @Column(length = 150)
     private String description;
+
     private boolean refunded;
     private boolean nonReturnable;
 
-    public Receipt(Long id,
-                   String vendor,
+    // ── Required no-arg constructor for JPA ──
+    public Receipt() {}
+
+    public Receipt(String vendor,
                    double amount,
                    LocalDate date,
                    String paymentType,
                    LocalDate refundDeadline,
                    String description) {
-        this.id = id;
         this.vendor = vendor;
         this.amount = amount;
         this.date = date;
@@ -53,7 +64,6 @@ public class Receipt {
     public void setNonReturnable(boolean nonReturnable)     { this.nonReturnable = nonReturnable; }
 
     // ── Status logic ──
-    // Returns one of: "na", "refunded", "refundable", "expired"
     public String getStatus() {
         if (nonReturnable) return "na";
         if (refunded) return "refunded";
