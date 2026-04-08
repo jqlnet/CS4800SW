@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — Receipt Tracker</title>
+  <style>
+    :root {
+      --bg:          #111110;
+      --bg-alt:      #1a1a18;
+      --card:        #1f1f1d;
+      --accent:      #f59e0b;
+      --text:        #e8e6e1;
+      --muted:       #8a8680;
+      --border-soft: rgba(200,190,170,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 20px; padding: 48px 40px;
+      width: 100%; max-width: 400px; text-align: center;
+    }
+    .logo { font-size: 48px; margin-bottom: 16px; }
+    .title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: var(--muted); margin-bottom: 36px; line-height: 1.5; }
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 13px 20px; border-radius: 999px;
+      background: #fff; color: #1f1f1d;
+      font-size: 15px; font-weight: 600; border: none;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-google:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-google img { width: 20px; height: 20px; }
+    .error-msg {
+      margin-top: 16px; font-size: 13px; color: #ef4444;
+      display: none;
+    }
+    .loading-msg {
+      margin-top: 16px; font-size: 13px; color: var(--muted);
+      display: none;
+    }
+    .footer-note {
+      margin-top: 24px; font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <div class="logo">🧾</div>
+  <div class="title">Receipt Tracker</div>
+  <div class="subtitle">Sign in to manage your receipts,<br>track refund windows, and monitor EBT spending.</div>
+
+  <button class="btn-google" id="google-btn">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+    Sign in with Google
+  </button>
+
+  <div class="error-msg" id="error-msg">Sign in failed. Please try again.</div>
+  <div class="loading-msg" id="loading-msg">Signing you in…</div>
+
+  <div class="footer-note">CS 4800 — Software Engineering Project</div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBavv7mU0LpLwVRiOu8sNFp75ZcoETUP2I",
+    authDomain:        "receipttracker-cs4800.firebaseapp.com",
+    projectId:         "receipttracker-cs4800",
+    storageBucket:     "receipttracker-cs4800.firebasestorage.app",
+    messagingSenderId: "430460566836",
+    appId:             "1:430460566836:web:61f489ad2e85870da0f961"
+  };
+
+  const app      = initializeApp(firebaseConfig);
+  const auth     = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  document.getElementById('google-btn').addEventListener('click', async () => {
+    const errorMsg   = document.getElementById('error-msg');
+    const loadingMsg = document.getElementById('loading-msg');
+    errorMsg.style.display   = 'none';
+    loadingMsg.style.display = 'block';
+
+    try {
+      const result  = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+
+      // Send token to Spring Boot backend
+      const formData = new FormData();
+      formData.append('idToken', idToken);
+
+      const response = await fetch('/auth/firebase', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        window.location.href = '/';
+      } else {
+        throw new Error('Backend auth failed');
+      }
+    } catch (err) {
+      loadingMsg.style.display = 'none';
+      errorMsg.style.display   = 'block';
+      console.error(err);
+    }
+  });
+</script>
+</body>
+</html>

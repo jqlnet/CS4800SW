@@ -20,8 +20,8 @@
       --bg:          #e6e9ef;
       --bg-alt:      #eff1f5;
       --card:        #ffffff;
-      --accent:      #d97706;
-      --accent-soft: rgba(217,119,6,0.10);
+      --accent:      #eab308;
+      --accent-soft: rgba(234,179,8,0.12);
       --text:        #4c4f69;
       --muted:       #6b7280;
       --border-soft: rgba(148,163,184,0.4);
@@ -39,16 +39,25 @@
       background: var(--bg-alt); position: sticky; top: 0; z-index: 20;
     }
     .app-name { font-size: 16px; font-weight: 700; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
     nav a {
       color: var(--muted); text-decoration: none;
       font-size: 13px; margin-left: 20px; transition: color 0.2s;
     }
     nav a:hover { color: var(--accent); }
+    .user-info { font-size: 13px; color: var(--muted); }
+    .btn-signout {
+      font-size: 12px; padding: 5px 14px; border-radius: 999px;
+      border: 1px solid var(--border-soft); background: transparent;
+      color: var(--muted); cursor: pointer; text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-signout:hover { border-color: #ef4444; color: #ef4444; }
     .theme-toggle {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 12px; padding: 5px 13px; border-radius: 999px;
       border: 1px solid var(--border-soft); background: transparent;
-      color: var(--muted); cursor: pointer; margin-left: 20px;
+      color: var(--muted); cursor: pointer;
       transition: border-color 0.2s, color 0.2s;
     }
     .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
@@ -62,7 +71,8 @@
       display: inline-flex; align-items: center; gap: 6px;
       padding: 11px 24px; border-radius: 999px;
       font-size: 14px; font-weight: 600; text-decoration: none;
-      border: none; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      border: none; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
     }
     .btn:hover { opacity: 0.88; transform: translateY(-1px); }
     .btn-primary { background: var(--accent); color: #111; }
@@ -80,7 +90,8 @@
     }
     .feature-card {
       background: var(--card); border: 1px solid var(--border-soft);
-      border-radius: 14px; padding: 22px; transition: border-color 0.2s, transform 0.15s;
+      border-radius: 14px; padding: 22px;
+      transition: border-color 0.2s, transform 0.15s;
     }
     .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
     .f-icon  { font-size: 26px; margin-bottom: 12px; }
@@ -91,12 +102,14 @@
 <body>
 <header>
   <span class="app-name">🧾 Receipt Tracker</span>
-  <div style="display:flex;align-items:center;">
+  <div class="header-right">
     <nav>
       <a th:href="@{/}">Home</a>
       <a th:href="@{/receipts}">Receipts</a>
       <a th:href="@{/receipts/add}">+ Add Receipt</a>
     </nav>
+    <span class="user-info" th:text="${userName}">User</span>
+    <a href="/logout" class="btn-signout">Sign out</a>
     <button class="theme-toggle" id="theme-toggle">
       <span id="theme-icon">🌙</span>
       <span id="theme-label">Dark</span>
@@ -125,12 +138,12 @@
     <div class="feature-card">
       <div class="f-icon">⏰</div>
       <div class="f-title">Refund Tracking</div>
-      <div class="f-desc">Can pick refund deadlines. See exactly which receipts are still returnable.</div>
+      <div class="f-desc">Auto-calculated refund deadlines. See exactly which receipts are still returnable.</div>
     </div>
     <div class="feature-card">
       <div class="f-icon">💚</div>
-      <div class="f-title">SNAP/EBT Monitoring</div>
-      <div class="f-desc">Running totals of SNAP spend across all receipts shown in the dashboard summary.</div>
+      <div class="f-title">EBT Monitoring</div>
+      <div class="f-desc">Running totals of EBT spend across all receipts shown in the dashboard summary.</div>
     </div>
     <div class="feature-card">
       <div class="f-icon">✍️</div>
