@@ -9,13 +9,15 @@
       --bg: #111110; --bg-alt: #1a1a18; --card: #1f1f1d;
       --accent: #f59e0b; --accent-soft: rgba(245,158,11,0.12);
       --text: #e8e6e1; --muted: #8a8680;
-      --danger: #ef4444; --border-soft: rgba(200,190,170,0.12);
+      --danger: #ef4444; --success: #4ade80;
+      --border-soft: rgba(200,190,170,0.12);
     }
     body.theme-light {
       --bg: #e6e9ef; --bg-alt: #eff1f5; --card: #ffffff;
       --accent: #eab308; --accent-soft: rgba(234,179,8,0.12);
       --text: #4c4f69; --muted: #6b7280;
-      --danger: #d20f39; --border-soft: rgba(148,163,184,0.4);
+      --danger: #d20f39; --success: #16a34a;
+      --border-soft: rgba(148,163,184,0.4);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -46,6 +48,46 @@
     .page-kicker { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
     .page-title  { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
     .page-sub    { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+    /* ── Scan Card ── */
+    .scan-card {
+      background: var(--card); border: 1px solid var(--border-soft);
+      border-radius: 16px; padding: 24px; margin-bottom: 16px;
+    }
+    .scan-title {
+      font-size: 13px; font-weight: 700; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .scan-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .scan-btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-scan {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      border: 1px solid var(--border-soft); background: var(--accent-soft);
+      color: var(--accent); cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-scan:hover { opacity: 0.85; }
+    .scan-status {
+      margin-top: 14px; font-size: 13px; display: none;
+      padding: 12px 14px; border-radius: 10px; line-height: 1.5;
+    }
+    .scan-status.loading { color: var(--muted); background: rgba(200,190,170,0.06); border: 1px solid var(--border-soft); }
+    .scan-status.success { color: var(--success); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
+    .scan-status.error   { color: var(--danger);  background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2); }
+    .scan-status.warning { color: var(--accent);  background: var(--accent-soft);    border: 1px solid rgba(245,158,11,0.2); }
+    .scan-retry-btn {
+      display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600;
+      color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none;
+    }
+    .divider-or {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11px; color: var(--muted); margin: 16px 0 0;
+    }
+    .divider-or::before, .divider-or::after {
+      content: ''; flex: 1; height: 1px; background: var(--border-soft);
+    }
+
+    /* ── Form Card ── */
     .form-card { background: var(--card); border: 1px solid var(--border-soft); border-radius: 16px; padding: 32px; }
     .field { margin-bottom: 22px; }
     .field label {
@@ -61,6 +103,8 @@
     .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
     .field textarea { resize: vertical; min-height: 80px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .field.prefilled input, .field.prefilled select { border-color: var(--accent); background: var(--accent-soft); }
+    .field.uncertain input { border-color: #f59e0b88; }
     .custom-days-wrap { margin-top: 10px; display: none; }
     .custom-days-wrap.visible { display: block; }
     .custom-days-wrap input {
@@ -69,7 +113,6 @@
       font-size: 14px; outline: none; transition: border-color 0.2s;
     }
     .custom-days-wrap input:focus { border-color: var(--accent); }
-    .custom-days-wrap input::placeholder { color: var(--muted); }
     .divider { border: none; border-top: 1px solid var(--border-soft); margin: 24px 0; }
     .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
     .char-counter { display: flex; justify-content: flex-end; margin-top: 6px; font-size: 11px; color: var(--muted); transition: color 0.2s; }
@@ -91,6 +134,9 @@
     .btn-primary { background: var(--accent); color: #111; }
     .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border-soft); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* hidden file inputs */
+    #camera-input, #upload-input { display: none; }
   </style>
 </head>
 <body>
@@ -114,25 +160,62 @@
 <div class="page">
   <div class="page-kicker">CS 4800 Project</div>
   <div class="page-title">Add a Receipt</div>
-  <div class="page-sub">Fill in the details below. The refund deadline is calculated from the purchase date.</div>
+  <div class="page-sub">Scan a receipt with your camera or fill in the details manually.</div>
+
+  <!-- ── Scan Section ── -->
+  <div class="scan-card">
+    <div class="scan-title">📷 Scan Receipt with AI</div>
+    <div class="scan-sub">Take a photo or upload an image — Claude AI will read the receipt and fill in the form for you.</div>
+    <div class="scan-btn-row">
+      <button type="button" class="btn-scan" onclick="document.getElementById('camera-input').click()">
+        📷 Take Photo
+      </button>
+      <button type="button" class="btn-scan" onclick="document.getElementById('upload-input').click()">
+        📁 Upload Image
+      </button>
+    </div>
+    <!-- Hidden file inputs -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment"/>
+    <input type="file" id="upload-input" accept="image/*"/>
+
+    <div class="scan-status loading" id="scan-loading">
+      ⏳ Scanning receipt with Claude AI…
+    </div>
+    <div class="scan-status success" id="scan-success">
+      ✓ Receipt scanned! Review the fields below and correct anything marked with <strong>?</strong>
+    </div>
+    <div class="scan-status warning" id="scan-warning">
+      ⚠️ Claude filled in what it could. Fields marked with <strong>?</strong> need your review.
+    </div>
+    <div class="scan-status error" id="scan-error">
+      <span id="scan-error-msg">Claude couldn't read this receipt clearly.</span>
+      <br/>
+      <button class="scan-retry-btn" onclick="retryOrManual()">Try again with a clearer photo</button>
+      — or fill in the form below manually.
+    </div>
+
+    <div class="divider-or">or fill in manually below</div>
+  </div>
+
+  <!-- ── Manual Form ── -->
   <div class="form-card">
     <form th:action="@{/receipts}" method="post" id="receipt-form">
       <div class="section-label">Receipt Info</div>
-      <div class="field">
+      <div class="field" id="field-vendor">
         <label>Vendor</label>
-        <input type="text" name="vendor" required placeholder="Target, Walmart, Amazon…"/>
+        <input type="text" name="vendor" id="input-vendor" required placeholder="Target, Walmart, Amazon…"/>
       </div>
-      <div class="field">
+      <div class="field" id="field-amount">
         <label>Amount ($)</label>
-        <input type="number" step="0.01" min="0" name="amount" required placeholder="0.00"/>
+        <input type="number" step="0.01" min="0" name="amount" id="input-amount" required placeholder="0.00"/>
       </div>
-      <div class="field">
+      <div class="field" id="field-date">
         <label>Purchase Date</label>
-        <input type="date" name="date" required/>
+        <input type="date" name="date" id="input-date" required/>
       </div>
-      <div class="field">
+      <div class="field" id="field-payment">
         <label>Payment Type</label>
-        <select name="paymentType">
+        <select name="paymentType" id="input-payment">
           <option>Card</option><option>Cash</option><option>EBT</option>
         </select>
       </div>
@@ -178,6 +261,7 @@
 </div>
 
 <script>
+  /* ── Theme ── */
   const toggle = document.getElementById('theme-toggle');
   const icon   = document.getElementById('theme-icon');
   const lbl    = document.getElementById('theme-label');
@@ -190,6 +274,8 @@
     const next = document.body.classList.contains('theme-light') ? 'dark' : 'light';
     applyTheme(next); localStorage.setItem('rt_theme', next);
   });
+
+  /* ── Refund window ── */
   const preset = document.getElementById('refund-preset');
   const customWrap = document.getElementById('custom-days-wrap');
   const customInput = document.getElementById('custom-days-input');
@@ -197,6 +283,8 @@
     if (preset.value === 'custom') { customWrap.classList.add('visible'); customInput.required = true; }
     else { customWrap.classList.remove('visible'); customInput.required = false; customInput.value = ''; }
   });
+
+  /* ── Char counter ── */
   const descArea = document.getElementById('description');
   const charCounter = document.getElementById('char-counter');
   descArea.addEventListener('input', () => {
@@ -204,10 +292,117 @@
     charCounter.textContent = `${len} / 150`;
     charCounter.classList.toggle('warning', len >= 140);
   });
+
+  /* ── Form validation ── */
   document.getElementById('receipt-form').addEventListener('submit', (e) => {
     if (preset.value === 'custom' && (!customInput.value || customInput.value < 1)) {
       e.preventDefault(); customInput.focus(); customInput.style.borderColor = 'var(--danger)';
     }
+  });
+
+  /* ── Scan helpers ── */
+  function hideAllStatus() {
+    ['scan-loading','scan-success','scan-warning','scan-error'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+  function showStatus(id) {
+    hideAllStatus();
+    document.getElementById(id).style.display = 'block';
+  }
+
+  function clearPrefill() {
+    ['field-vendor','field-amount','field-date','field-payment'].forEach(id => {
+      document.getElementById(id).classList.remove('prefilled', 'uncertain');
+    });
+  }
+
+  function prefillField(fieldId, inputId, value, uncertain) {
+    if (value === null || value === undefined) return;
+    const input = document.getElementById(inputId);
+    const field = document.getElementById(fieldId);
+    if (inputId === 'input-payment') {
+      // Handle select
+      const opts = input.options;
+      for (let i = 0; i < opts.length; i++) {
+        if (opts[i].value === value.replace('?','').trim()) {
+          input.selectedIndex = i; break;
+        }
+      }
+    } else {
+      input.value = value;
+    }
+    field.classList.add(uncertain ? 'uncertain' : 'prefilled');
+  }
+
+  function retryOrManual() {
+    hideAllStatus();
+    document.getElementById('camera-input').click();
+  }
+
+  /* ── Handle image scan ── */
+  async function handleImageScan(file) {
+    if (!file) return;
+    clearPrefill();
+    showStatus('scan-loading');
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/receipts/scan', { method: 'POST', body: formData });
+      const data = await response.json();
+
+      if (data.error && !data.canFillManually) {
+        document.getElementById('scan-error-msg').textContent = data.error;
+        showStatus('scan-error');
+        return;
+      }
+
+      if (data.error) {
+        document.getElementById('scan-error-msg').textContent = data.error;
+        showStatus('scan-error');
+        return;
+      }
+
+      if (data.success) {
+        let hasUncertain = false;
+
+        // Prefill each field
+        if (data.vendor) {
+          const uncertain = data.vendor.endsWith('?');
+          prefillField('field-vendor', 'input-vendor', data.vendor, uncertain);
+          if (uncertain) hasUncertain = true;
+        }
+        if (data.amount) {
+          const uncertain = String(data.amount).endsWith('?');
+          prefillField('field-amount', 'input-amount', data.amount, uncertain);
+          if (uncertain) hasUncertain = true;
+        }
+        if (data.date) {
+          const uncertain = data.date.endsWith('?');
+          prefillField('field-date', 'input-date', data.date.replace('?',''), uncertain);
+          if (uncertain) hasUncertain = true;
+        }
+        if (data.paymentType) {
+          const uncertain = data.paymentType.endsWith('?');
+          prefillField('field-payment', 'input-payment', data.paymentType, uncertain);
+          if (uncertain) hasUncertain = true;
+        }
+
+        showStatus(hasUncertain ? 'scan-warning' : 'scan-success');
+      }
+    } catch (err) {
+      document.getElementById('scan-error-msg').textContent = 'Something went wrong. Please try again or fill in manually.';
+      showStatus('scan-error');
+    }
+  }
+
+  document.getElementById('camera-input').addEventListener('change', (e) => {
+    handleImageScan(e.target.files[0]);
+  });
+  document.getElementById('upload-input').addEventListener('change', (e) => {
+    handleImageScan(e.target.files[0]);
   });
 </script>
 </body>
