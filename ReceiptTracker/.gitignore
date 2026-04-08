@@ -1,0 +1,11 @@
+# Database credentials
+src/main/resources/serviceAccountKey.json
+
+# Maven
+target/
+
+# VS Code
+.vscode/
+
+# Environment
+*.env
