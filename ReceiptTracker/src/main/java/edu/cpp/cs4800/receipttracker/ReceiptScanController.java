@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,7 +22,8 @@ import java.util.Map;
 @Controller
 public class ReceiptScanController {
 
-    private static final String ANTHROPIC_API_KEY = "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";
+    @Value("${anthropic.api.key}")
+    private String ANTHROPIC_API_KEY;
     private static final String CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
     @PostMapping("/receipts/scan")
