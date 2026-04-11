@@ -3,13 +3,17 @@ package edu.cpp.cs4800.receipttracker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Value;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -24,6 +28,7 @@ public class ReceiptScanController {
 
     @Value("${anthropic.api.key}")
     private String ANTHROPIC_API_KEY;
+
     private static final String CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
     @PostMapping("/receipts/scan")
@@ -39,12 +44,37 @@ public class ReceiptScanController {
         }
 
         try {
-            // Convert image to base64
             byte[] imageBytes = image.getBytes();
-            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
             String mediaType = image.getContentType();
 
-            // Build the prompt
+            // ── Convert HEIC to JPEG if needed ──
+            if (mediaType != null && (mediaType.equalsIgnoreCase("image/heic")
+                    || mediaType.equalsIgnoreCase("image/heif")
+                    || (image.getOriginalFilename() != null &&
+                        image.getOriginalFilename().toLowerCase().endsWith(".heic")))) {
+
+                try {
+                    BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+                    if (bufferedImage != null) {
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        ImageIO.write(bufferedImage, "JPEG", outputStream);
+                        imageBytes = outputStream.toByteArray();
+                        mediaType = "image/jpeg";
+                    }
+                } catch (Exception e) {
+                    // If conversion fails, try sending as-is
+                    mediaType = "image/jpeg";
+                }
+            }
+
+            // ── Make sure media type is valid for Claude ──
+            if (mediaType == null || (!mediaType.startsWith("image/"))) {
+                mediaType = "image/jpeg";
+            }
+
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+            // ── Build the prompt ──
             String prompt = """
                 Look at this receipt image carefully. Extract the following fields and return ONLY a JSON object, no other text.
                 
@@ -67,7 +97,7 @@ public class ReceiptScanController {
                 }
                 """;
 
-            // Build Claude API request body
+            // ── Build Claude API request ──
             ObjectMapper mapper = new ObjectMapper();
 
             Map<String, Object> imageSource = new HashMap<>();
@@ -94,7 +124,7 @@ public class ReceiptScanController {
 
             String requestJson = mapper.writeValueAsString(requestBody);
 
-            // Call Claude API
+            // ── Call Claude API ──
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.anthropic.com/v1/messages"))
@@ -112,7 +142,7 @@ public class ReceiptScanController {
                 return ResponseEntity.ok(result);
             }
 
-            // Parse Claude's response
+            // ── Parse Claude's response ──
             JsonNode responseJson = mapper.readTree(response.body());
             String claudeText = responseJson
                     .path("content")
@@ -120,12 +150,9 @@ public class ReceiptScanController {
                     .path("text")
                     .asText();
 
-            // Parse the JSON Claude returned
             JsonNode extracted = mapper.readTree(claudeText.trim());
-
             String confidence = extracted.path("confidence").asText("low");
 
-            // Build result based on confidence
             if ("low".equals(confidence)) {
                 result.put("error", "Claude couldn't read this receipt clearly. Please try a clearer photo or fill in manually.");
                 result.put("canFillManually", true);
@@ -134,22 +161,15 @@ public class ReceiptScanController {
                 result.put("success", true);
                 result.put("confidence", confidence);
 
-                // Vendor
                 if (!extracted.path("vendor").isNull()) {
                     result.put("vendor", extracted.path("vendor").asText());
                 }
-
-                // Amount
                 if (!extracted.path("amount").isNull()) {
                     result.put("amount", extracted.path("amount").asText());
                 }
-
-                // Date
                 if (!extracted.path("date").isNull()) {
                     result.put("date", extracted.path("date").asText());
                 }
-
-                // Payment type
                 if (!extracted.path("paymentType").isNull()) {
                     result.put("paymentType", extracted.path("paymentType").asText());
                 }
