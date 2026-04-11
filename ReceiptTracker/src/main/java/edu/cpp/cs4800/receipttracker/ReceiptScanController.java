@@ -27,7 +27,7 @@ public class ReceiptScanController {
     @Value("${anthropic.api.key}")
     private String ANTHROPIC_API_KEY;
 
-    private static final String CLAUDE_MODEL = "claude-sonnet-4-6-20260218";
+    private static final String CLAUDE_MODEL = "claude-sonnet-4-6";
 
     // Store name -> refund days lookup table
     private final Map<String, Integer> storePolicies = new HashMap<>();
