@@ -10,6 +10,7 @@
       --accent: #f59e0b; --accent-soft: rgba(245,158,11,0.12);
       --text: #e8e6e1; --muted: #8a8680;
       --danger: #ef4444; --success: #4ade80;
+      --warning: #f59e0b;
       --border-soft: rgba(200,190,170,0.12);
     }
     body.theme-light {
@@ -17,6 +18,7 @@
       --accent: #eab308; --accent-soft: rgba(234,179,8,0.12);
       --text: #4c4f69; --muted: #6b7280;
       --danger: #d20f39; --success: #16a34a;
+      --warning: #ca8a04;
       --border-soft: rgba(148,163,184,0.4);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,11 +72,16 @@
     }
     .scan-status.loading { color: var(--muted); background: rgba(200,190,170,0.06); border: 1px solid var(--border-soft); }
     .scan-status.success { color: var(--success); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
-    .scan-status.warning { color: var(--accent); background: var(--accent-soft); border: 1px solid rgba(245,158,11,0.2); }
+    .scan-status.warning { color: var(--warning); background: var(--accent-soft); border: 1px solid rgba(245,158,11,0.2); }
     .scan-status.error   { color: var(--danger); background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
     .scan-retry-btn {
       display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600;
       color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none;
+    }
+    .missing-fields-banner {
+      display: none; margin-top: 10px; padding: 10px 14px;
+      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 8px; font-size: 12px; color: var(--warning); line-height: 1.6;
     }
     .divider-or {
       display: flex; align-items: center; gap: 12px;
@@ -98,8 +105,22 @@
     .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
     .field textarea { resize: vertical; min-height: 100px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
-    .field.prefilled input, .field.prefilled select, .field.prefilled textarea { border-color: var(--accent); background: var(--accent-soft); }
-    .field.uncertain input, .field.uncertain textarea { border-color: #f59e0b88; }
+    .field.prefilled input, .field.prefilled select, .field.prefilled textarea {
+      border-color: var(--accent); background: var(--accent-soft);
+    }
+    .field.uncertain input, .field.uncertain select, .field.uncertain textarea {
+      border-color: #f59e0b88;
+    }
+    .field.missing-highlight input, .field.missing-highlight select {
+      border-color: rgba(245,158,11,0.4);
+      background: rgba(245,158,11,0.04);
+    }
+    .field-missing-badge {
+      display: none; font-size: 11px; color: var(--warning);
+      margin-top: 5px; font-weight: 500;
+    }
+    .field-missing-badge.visible { display: block; }
+
     .custom-days-wrap { margin-top: 10px; display: none; }
     .custom-days-wrap.visible { display: block; }
     .custom-days-wrap input {
@@ -165,14 +186,22 @@
     </div>
     <input type="file" id="camera-input" accept="image/*" capture="environment"/>
     <input type="file" id="upload-input" accept="image/*"/>
+
     <div class="scan-status loading"  id="scan-loading">⏳ Scanning receipt with Claude AI…</div>
-    <div class="scan-status success"  id="scan-success">✓ Receipt scanned! Review the fields below and correct anything marked with <strong>?</strong></div>
+    <div class="scan-status success"  id="scan-success">✓ Receipt scanned successfully! Review the fields below.</div>
     <div class="scan-status warning"  id="scan-warning">⚠️ Claude filled in what it could. Fields marked with <strong>?</strong> need your review.</div>
     <div class="scan-status error"    id="scan-error">
       <span id="scan-error-msg">Claude couldn't read this receipt clearly.</span><br/>
       <button class="scan-retry-btn" onclick="retryOrManual()">Try again with a clearer photo</button>
       — or fill in the form below manually.
     </div>
+
+    <!-- Missing fields banner -->
+    <div class="missing-fields-banner" id="missing-fields-banner">
+      ⚠️ Claude couldn't read the following fields — please fill them in manually:
+      <strong id="missing-fields-list"></strong>
+    </div>
+
     <div class="divider-or">or fill in manually below</div>
   </div>
 
@@ -180,23 +209,31 @@
   <div class="form-card">
     <form th:action="@{/receipts}" method="post" id="receipt-form">
       <div class="section-label">Receipt Info</div>
+
       <div class="field" id="field-vendor">
         <label>Vendor</label>
         <input type="text" name="vendor" id="input-vendor" required placeholder="Target, Walmart, Amazon…"/>
+        <div class="field-missing-badge" id="badge-vendor">⚠ Couldn't be read — please fill in</div>
       </div>
+
       <div class="field" id="field-amount">
         <label>Amount ($)</label>
         <input type="number" step="0.01" min="0" name="amount" id="input-amount" required placeholder="0.00"/>
+        <div class="field-missing-badge" id="badge-amount">⚠ Couldn't be read — please fill in</div>
       </div>
+
       <div class="field" id="field-date">
         <label>Purchase Date</label>
         <input type="date" name="date" id="input-date" required/>
+        <div class="field-missing-badge" id="badge-date">⚠ Couldn't be read — please fill in</div>
       </div>
+
       <div class="field" id="field-payment">
         <label>Payment Type</label>
         <select name="paymentType" id="input-payment">
           <option>Card</option><option>Cash</option><option>EBT</option>
         </select>
+        <div class="field-missing-badge" id="badge-payment">⚠ Couldn't be read — please fill in</div>
       </div>
 
       <hr class="divider"/>
@@ -260,8 +297,8 @@
   });
 
   /* ── Refund window ── */
-  const preset     = document.getElementById('refund-preset');
-  const customWrap = document.getElementById('custom-days-wrap');
+  const preset      = document.getElementById('refund-preset');
+  const customWrap  = document.getElementById('custom-days-wrap');
   const customInput = document.getElementById('custom-days-input');
   preset.addEventListener('change', () => {
     if (preset.value === 'custom') { customWrap.classList.add('visible'); customInput.required = true; }
@@ -279,9 +316,9 @@
       customInput.required = true;
       customInput.value = days;
     }
-    document.getElementById('refund-hint').textContent =
-      `✓ Auto-detected: ${days}-day return policy for this store`;
-    document.getElementById('refund-hint').style.color = 'var(--success)';
+    const hint = document.getElementById('refund-hint');
+    hint.textContent = `✓ Auto-detected: ${days}-day return policy for this store`;
+    hint.style.color = 'var(--success)';
   }
 
   /* ── Char counter ── */
@@ -305,16 +342,23 @@
     ['scan-loading','scan-success','scan-warning','scan-error'].forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
+    document.getElementById('missing-fields-banner').style.display = 'none';
   }
   function showStatus(id) { hideAllStatus(); document.getElementById(id).style.display = 'block'; }
 
   function clearPrefill() {
     ['field-vendor','field-amount','field-date','field-payment','field-description'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.classList.remove('prefilled', 'uncertain');
+      if (el) el.classList.remove('prefilled', 'uncertain', 'missing-highlight');
     });
-    document.getElementById('refund-hint').textContent = 'Refund deadline = purchase date + selected days';
-    document.getElementById('refund-hint').style.color = '';
+    ['badge-vendor','badge-amount','badge-date','badge-payment'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    });
+    const hint = document.getElementById('refund-hint');
+    hint.textContent = 'Refund deadline = purchase date + selected days';
+    hint.style.color = '';
+    document.getElementById('non-returnable-check').checked = false;
   }
 
   function prefillField(fieldId, inputId, value, uncertain) {
@@ -328,9 +372,16 @@
         if (input.options[i].value === clean) { input.selectedIndex = i; break; }
       }
     } else {
-      input.value = value;
+      input.value = uncertain ? value : value.replace('?','');
     }
     field.classList.add(uncertain ? 'uncertain' : 'prefilled');
+  }
+
+  function markMissingField(fieldId, badgeId) {
+    const field = document.getElementById(fieldId);
+    const badge = document.getElementById(badgeId);
+    if (field) field.classList.add('missing-highlight');
+    if (badge) badge.classList.add('visible');
   }
 
   function retryOrManual() { hideAllStatus(); document.getElementById('camera-input').click(); }
@@ -348,7 +399,7 @@
       const response = await fetch('/receipts/scan', { method: 'POST', body: formData });
       const data = await response.json();
 
-      if (data.error) {
+      if (data.error && !data.success) {
         document.getElementById('scan-error-msg').textContent = data.error;
         showStatus('scan-error');
         return;
@@ -357,26 +408,39 @@
       if (data.success) {
         let hasUncertain = false;
 
+        // Fill in found fields
         if (data.vendor) {
           const u = data.vendor.endsWith('?');
           prefillField('field-vendor', 'input-vendor', data.vendor, u);
           if (u) hasUncertain = true;
+        } else {
+          markMissingField('field-vendor', 'badge-vendor');
         }
+
         if (data.amount) {
           const u = String(data.amount).endsWith('?');
           prefillField('field-amount', 'input-amount', String(data.amount).replace('?',''), u);
           if (u) hasUncertain = true;
+        } else {
+          markMissingField('field-amount', 'badge-amount');
         }
+
         if (data.date) {
           const u = data.date.endsWith('?');
           prefillField('field-date', 'input-date', data.date.replace('?',''), u);
           if (u) hasUncertain = true;
+        } else {
+          markMissingField('field-date', 'badge-date');
         }
+
         if (data.paymentType) {
           const u = data.paymentType.endsWith('?');
           prefillField('field-payment', 'input-payment', data.paymentType, u);
           if (u) hasUncertain = true;
+        } else {
+          markMissingField('field-payment', 'badge-payment');
         }
+
         if (data.items) {
           prefillField('field-description', 'description', data.items, false);
           const len = data.items.length;
@@ -384,9 +448,24 @@
           charCounter.classList.toggle('warning', len >= 475);
         }
 
-        // Auto-set refund window if store policy found
+        // Auto-set refund window
         if (data.refundDaysFound && data.refundDays !== undefined) {
-          setRefundPreset(data.refundDays);
+          if (data.nonReturnable) {
+            // 0 days = non-returnable, auto-check the checkbox
+            document.getElementById('non-returnable-check').checked = true;
+            const hint = document.getElementById('refund-hint');
+            hint.textContent = '⚠ This store typically does not accept returns (e.g. restaurants, gas stations)';
+            hint.style.color = 'var(--warning)';
+          } else {
+            setRefundPreset(data.refundDays);
+          }
+        }
+
+        // Show missing fields banner if any
+        if (data.missingFields && data.missingFields.length > 0) {
+          const banner = document.getElementById('missing-fields-banner');
+          document.getElementById('missing-fields-list').textContent = ' ' + data.missingFields.join(', ');
+          banner.style.display = 'block';
         }
 
         showStatus(hasUncertain ? 'scan-warning' : 'scan-success');
