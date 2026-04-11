@@ -54,10 +54,7 @@
       background: var(--card); border: 1px solid var(--border-soft);
       border-radius: 16px; padding: 24px; margin-bottom: 16px;
     }
-    .scan-title {
-      font-size: 13px; font-weight: 700; margin-bottom: 4px;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .scan-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
     .scan-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
     .scan-btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
     .btn-scan {
@@ -73,8 +70,8 @@
     }
     .scan-status.loading { color: var(--muted); background: rgba(200,190,170,0.06); border: 1px solid var(--border-soft); }
     .scan-status.success { color: var(--success); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
-    .scan-status.error   { color: var(--danger);  background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2); }
-    .scan-status.warning { color: var(--accent);  background: var(--accent-soft);    border: 1px solid rgba(245,158,11,0.2); }
+    .scan-status.warning { color: var(--accent); background: var(--accent-soft); border: 1px solid rgba(245,158,11,0.2); }
+    .scan-status.error   { color: var(--danger); background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
     .scan-retry-btn {
       display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600;
       color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: none;
@@ -83,11 +80,9 @@
       display: flex; align-items: center; gap: 12px;
       font-size: 11px; color: var(--muted); margin: 16px 0 0;
     }
-    .divider-or::before, .divider-or::after {
-      content: ''; flex: 1; height: 1px; background: var(--border-soft);
-    }
+    .divider-or::before, .divider-or::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
 
-    /* ── Form Card ── */
+    /* ── Form ── */
     .form-card { background: var(--card); border: 1px solid var(--border-soft); border-radius: 16px; padding: 32px; }
     .field { margin-bottom: 22px; }
     .field label {
@@ -101,10 +96,10 @@
     }
     .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
     .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
-    .field textarea { resize: vertical; min-height: 80px; }
+    .field textarea { resize: vertical; min-height: 100px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
-    .field.prefilled input, .field.prefilled select { border-color: var(--accent); background: var(--accent-soft); }
-    .field.uncertain input { border-color: #f59e0b88; }
+    .field.prefilled input, .field.prefilled select, .field.prefilled textarea { border-color: var(--accent); background: var(--accent-soft); }
+    .field.uncertain input, .field.uncertain textarea { border-color: #f59e0b88; }
     .custom-days-wrap { margin-top: 10px; display: none; }
     .custom-days-wrap.visible { display: block; }
     .custom-days-wrap input {
@@ -134,8 +129,6 @@
     .btn-primary { background: var(--accent); color: #111; }
     .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border-soft); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* hidden file inputs */
     #camera-input, #upload-input { display: none; }
   </style>
 </head>
@@ -167,37 +160,23 @@
     <div class="scan-title">📷 Scan Receipt with AI</div>
     <div class="scan-sub">Take a photo or upload an image — Claude AI will read the receipt and fill in the form for you.</div>
     <div class="scan-btn-row">
-      <button type="button" class="btn-scan" onclick="document.getElementById('camera-input').click()">
-        📷 Take Photo
-      </button>
-      <button type="button" class="btn-scan" onclick="document.getElementById('upload-input').click()">
-        📁 Upload Image
-      </button>
+      <button type="button" class="btn-scan" onclick="document.getElementById('camera-input').click()">📷 Take Photo</button>
+      <button type="button" class="btn-scan" onclick="document.getElementById('upload-input').click()">📁 Upload Image</button>
     </div>
-    <!-- Hidden file inputs -->
     <input type="file" id="camera-input" accept="image/*" capture="environment"/>
     <input type="file" id="upload-input" accept="image/*"/>
-
-    <div class="scan-status loading" id="scan-loading">
-      ⏳ Scanning receipt with Claude AI…
-    </div>
-    <div class="scan-status success" id="scan-success">
-      ✓ Receipt scanned! Review the fields below and correct anything marked with <strong>?</strong>
-    </div>
-    <div class="scan-status warning" id="scan-warning">
-      ⚠️ Claude filled in what it could. Fields marked with <strong>?</strong> need your review.
-    </div>
-    <div class="scan-status error" id="scan-error">
-      <span id="scan-error-msg">Claude couldn't read this receipt clearly.</span>
-      <br/>
+    <div class="scan-status loading"  id="scan-loading">⏳ Scanning receipt with Claude AI…</div>
+    <div class="scan-status success"  id="scan-success">✓ Receipt scanned! Review the fields below and correct anything marked with <strong>?</strong></div>
+    <div class="scan-status warning"  id="scan-warning">⚠️ Claude filled in what it could. Fields marked with <strong>?</strong> need your review.</div>
+    <div class="scan-status error"    id="scan-error">
+      <span id="scan-error-msg">Claude couldn't read this receipt clearly.</span><br/>
       <button class="scan-retry-btn" onclick="retryOrManual()">Try again with a clearer photo</button>
       — or fill in the form below manually.
     </div>
-
     <div class="divider-or">or fill in manually below</div>
   </div>
 
-  <!-- ── Manual Form ── -->
+  <!-- ── Form ── -->
   <div class="form-card">
     <form th:action="@{/receipts}" method="post" id="receipt-form">
       <div class="section-label">Receipt Info</div>
@@ -219,6 +198,7 @@
           <option>Card</option><option>Cash</option><option>EBT</option>
         </select>
       </div>
+
       <hr class="divider"/>
       <div class="section-label">Refund Window</div>
       <div class="field">
@@ -232,15 +212,18 @@
         <div class="custom-days-wrap" id="custom-days-wrap">
           <input type="number" name="customDays" id="custom-days-input" min="1" max="365" placeholder="Enter number of days…"/>
         </div>
-        <div class="hint">Refund deadline = purchase date + selected days</div>
+        <div class="hint" id="refund-hint">Refund deadline = purchase date + selected days</div>
       </div>
+
       <hr class="divider"/>
       <div class="section-label">Item Description</div>
-      <div class="field">
+      <div class="field" id="field-description">
         <label>Description <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea name="description" id="description" maxlength="150" placeholder="e.g. Milk, eggs, bread — weekly grocery run"></textarea>
-        <div class="char-counter" id="char-counter">0 / 150</div>
+        <textarea name="description" id="description" maxlength="500"
+                  placeholder="e.g. Bananas: $1.67, Bluetooth Care: $122.34…"></textarea>
+        <div class="char-counter" id="char-counter">0 / 500</div>
       </div>
+
       <hr class="divider"/>
       <div class="section-label">Return Eligibility</div>
       <div class="toggle-row">
@@ -250,6 +233,7 @@
           <div class="sublabel">e.g. food, gas, gift cards, perishables</div>
         </div>
       </div>
+
       <div style="margin-top: 24px;">
         <div class="btn-row">
           <a th:href="@{/receipts}" class="btn btn-outline">Cancel</a>
@@ -276,7 +260,7 @@
   });
 
   /* ── Refund window ── */
-  const preset = document.getElementById('refund-preset');
+  const preset     = document.getElementById('refund-preset');
   const customWrap = document.getElementById('custom-days-wrap');
   const customInput = document.getElementById('custom-days-input');
   preset.addEventListener('change', () => {
@@ -284,13 +268,29 @@
     else { customWrap.classList.remove('visible'); customInput.required = false; customInput.value = ''; }
   });
 
+  function setRefundPreset(days) {
+    if (days === 30 || days === 60 || days === 90) {
+      preset.value = String(days);
+      customWrap.classList.remove('visible');
+      customInput.required = false;
+    } else {
+      preset.value = 'custom';
+      customWrap.classList.add('visible');
+      customInput.required = true;
+      customInput.value = days;
+    }
+    document.getElementById('refund-hint').textContent =
+      `✓ Auto-detected: ${days}-day return policy for this store`;
+    document.getElementById('refund-hint').style.color = 'var(--success)';
+  }
+
   /* ── Char counter ── */
-  const descArea = document.getElementById('description');
+  const descArea    = document.getElementById('description');
   const charCounter = document.getElementById('char-counter');
   descArea.addEventListener('input', () => {
     const len = descArea.value.length;
-    charCounter.textContent = `${len} / 150`;
-    charCounter.classList.toggle('warning', len >= 140);
+    charCounter.textContent = `${len} / 500`;
+    charCounter.classList.toggle('warning', len >= 475);
   });
 
   /* ── Form validation ── */
@@ -306,28 +306,26 @@
       document.getElementById(id).style.display = 'none';
     });
   }
-  function showStatus(id) {
-    hideAllStatus();
-    document.getElementById(id).style.display = 'block';
-  }
+  function showStatus(id) { hideAllStatus(); document.getElementById(id).style.display = 'block'; }
 
   function clearPrefill() {
-    ['field-vendor','field-amount','field-date','field-payment'].forEach(id => {
-      document.getElementById(id).classList.remove('prefilled', 'uncertain');
+    ['field-vendor','field-amount','field-date','field-payment','field-description'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('prefilled', 'uncertain');
     });
+    document.getElementById('refund-hint').textContent = 'Refund deadline = purchase date + selected days';
+    document.getElementById('refund-hint').style.color = '';
   }
 
   function prefillField(fieldId, inputId, value, uncertain) {
     if (value === null || value === undefined) return;
     const input = document.getElementById(inputId);
     const field = document.getElementById(fieldId);
-    if (inputId === 'input-payment') {
-      // Handle select
-      const opts = input.options;
-      for (let i = 0; i < opts.length; i++) {
-        if (opts[i].value === value.replace('?','').trim()) {
-          input.selectedIndex = i; break;
-        }
+    if (!input || !field) return;
+    if (input.tagName === 'SELECT') {
+      const clean = value.replace('?','').trim();
+      for (let i = 0; i < input.options.length; i++) {
+        if (input.options[i].value === clean) { input.selectedIndex = i; break; }
       }
     } else {
       input.value = value;
@@ -335,10 +333,7 @@
     field.classList.add(uncertain ? 'uncertain' : 'prefilled');
   }
 
-  function retryOrManual() {
-    hideAllStatus();
-    document.getElementById('camera-input').click();
-  }
+  function retryOrManual() { hideAllStatus(); document.getElementById('camera-input').click(); }
 
   /* ── Handle image scan ── */
   async function handleImageScan(file) {
@@ -353,12 +348,6 @@
       const response = await fetch('/receipts/scan', { method: 'POST', body: formData });
       const data = await response.json();
 
-      if (data.error && !data.canFillManually) {
-        document.getElementById('scan-error-msg').textContent = data.error;
-        showStatus('scan-error');
-        return;
-      }
-
       if (data.error) {
         document.getElementById('scan-error-msg').textContent = data.error;
         showStatus('scan-error');
@@ -368,26 +357,36 @@
       if (data.success) {
         let hasUncertain = false;
 
-        // Prefill each field
         if (data.vendor) {
-          const uncertain = data.vendor.endsWith('?');
-          prefillField('field-vendor', 'input-vendor', data.vendor, uncertain);
-          if (uncertain) hasUncertain = true;
+          const u = data.vendor.endsWith('?');
+          prefillField('field-vendor', 'input-vendor', data.vendor, u);
+          if (u) hasUncertain = true;
         }
         if (data.amount) {
-          const uncertain = String(data.amount).endsWith('?');
-          prefillField('field-amount', 'input-amount', data.amount, uncertain);
-          if (uncertain) hasUncertain = true;
+          const u = String(data.amount).endsWith('?');
+          prefillField('field-amount', 'input-amount', String(data.amount).replace('?',''), u);
+          if (u) hasUncertain = true;
         }
         if (data.date) {
-          const uncertain = data.date.endsWith('?');
-          prefillField('field-date', 'input-date', data.date.replace('?',''), uncertain);
-          if (uncertain) hasUncertain = true;
+          const u = data.date.endsWith('?');
+          prefillField('field-date', 'input-date', data.date.replace('?',''), u);
+          if (u) hasUncertain = true;
         }
         if (data.paymentType) {
-          const uncertain = data.paymentType.endsWith('?');
-          prefillField('field-payment', 'input-payment', data.paymentType, uncertain);
-          if (uncertain) hasUncertain = true;
+          const u = data.paymentType.endsWith('?');
+          prefillField('field-payment', 'input-payment', data.paymentType, u);
+          if (u) hasUncertain = true;
+        }
+        if (data.items) {
+          prefillField('field-description', 'description', data.items, false);
+          const len = data.items.length;
+          charCounter.textContent = `${len} / 500`;
+          charCounter.classList.toggle('warning', len >= 475);
+        }
+
+        // Auto-set refund window if store policy found
+        if (data.refundDaysFound && data.refundDays !== undefined) {
+          setRefundPreset(data.refundDays);
         }
 
         showStatus(hasUncertain ? 'scan-warning' : 'scan-success');
@@ -398,12 +397,8 @@
     }
   }
 
-  document.getElementById('camera-input').addEventListener('change', (e) => {
-    handleImageScan(e.target.files[0]);
-  });
-  document.getElementById('upload-input').addEventListener('change', (e) => {
-    handleImageScan(e.target.files[0]);
-  });
+  document.getElementById('camera-input').addEventListener('change', (e) => handleImageScan(e.target.files[0]));
+  document.getElementById('upload-input').addEventListener('change', (e) => handleImageScan(e.target.files[0]));
 </script>
 </body>
 </html>

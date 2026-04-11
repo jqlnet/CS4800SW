@@ -61,7 +61,7 @@
     }
     .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
     .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
-    .field textarea { resize: vertical; min-height: 80px; }
+    .field textarea { resize: vertical; min-height: 100px; }
     .field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
     .char-counter { display: flex; justify-content: flex-end; margin-top: 6px; font-size: 11px; color: var(--muted); transition: color 0.2s; }
     .char-counter.warning { color: var(--danger); }
@@ -143,8 +143,9 @@
       <div class="section-label">Item Description</div>
       <div class="field">
         <label>Description <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea name="description" id="description" maxlength="150" th:text="${receipt.description}"></textarea>
-        <div class="char-counter" id="char-counter">0 / 150</div>
+        <textarea name="description" id="description" maxlength="500"
+                  th:text="${receipt.description}"></textarea>
+        <div class="char-counter" id="char-counter">0 / 500</div>
       </div>
       <hr class="divider"/>
       <div class="section-label">Status Overrides</div>
@@ -185,12 +186,13 @@
     const next = document.body.classList.contains('theme-light') ? 'dark' : 'light';
     applyTheme(next); localStorage.setItem('rt_theme', next);
   });
-  const descArea = document.getElementById('description');
+
+  const descArea    = document.getElementById('description');
   const charCounter = document.getElementById('char-counter');
   function updateCounter() {
     const len = descArea.value.length;
-    charCounter.textContent = `${len} / 150`;
-    charCounter.classList.toggle('warning', len >= 140);
+    charCounter.textContent = `${len} / 500`;
+    charCounter.classList.toggle('warning', len >= 475);
   }
   descArea.addEventListener('input', updateCounter);
   updateCounter();

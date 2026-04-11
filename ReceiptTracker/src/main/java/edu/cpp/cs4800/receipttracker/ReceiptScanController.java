@@ -2,8 +2,10 @@ package edu.cpp.cs4800.receipttracker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,16 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class ReceiptScanController {
@@ -30,6 +28,47 @@ public class ReceiptScanController {
     private String ANTHROPIC_API_KEY;
 
     private static final String CLAUDE_MODEL = "claude-sonnet-4-20250514";
+
+    // Store name -> refund days lookup table
+    private final Map<String, Integer> storePolicies = new HashMap<>();
+
+    @PostConstruct
+    public void loadStorePolicies() {
+        try {
+            InputStream is = new ClassPathResource("store-policies.csv").getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+            boolean firstLine = true;
+            while ((line = reader.readLine()) != null) {
+                if (firstLine) { firstLine = false; continue; } // skip header
+                String[] parts = line.split(",", 2);
+                if (parts.length == 2) {
+                    String store = parts[0].trim().toLowerCase();
+                    int days = Integer.parseInt(parts[1].trim());
+                    storePolicies.put(store, days);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load store policies: " + e.getMessage());
+        }
+    }
+
+    // Look up refund days for a vendor name (case-insensitive, partial match)
+    private Integer lookupRefundDays(String vendor) {
+        if (vendor == null) return null;
+        String v = vendor.toLowerCase().replace("?", "").trim();
+
+        // Exact match first
+        if (storePolicies.containsKey(v)) return storePolicies.get(v);
+
+        // Partial match — check if vendor contains or is contained by a known store
+        for (Map.Entry<String, Integer> entry : storePolicies.entrySet()) {
+            if (v.contains(entry.getKey()) || entry.getKey().contains(v)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
 
     @PostMapping("/receipts/scan")
     public ResponseEntity<Map<String, Object>> scanReceipt(
@@ -52,7 +91,6 @@ public class ReceiptScanController {
                     || mediaType.equalsIgnoreCase("image/heif")
                     || (image.getOriginalFilename() != null &&
                         image.getOriginalFilename().toLowerCase().endsWith(".heic")))) {
-
                 try {
                     BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
                     if (bufferedImage != null) {
@@ -62,13 +100,11 @@ public class ReceiptScanController {
                         mediaType = "image/jpeg";
                     }
                 } catch (Exception e) {
-                    // If conversion fails, try sending as-is
                     mediaType = "image/jpeg";
                 }
             }
 
-            // ── Make sure media type is valid for Claude ──
-            if (mediaType == null || (!mediaType.startsWith("image/"))) {
+            if (mediaType == null || !mediaType.startsWith("image/")) {
                 mediaType = "image/jpeg";
             }
 
@@ -76,23 +112,28 @@ public class ReceiptScanController {
 
             // ── Build the prompt ──
             String prompt = """
-                Look at this receipt image carefully. Extract the following fields and return ONLY a JSON object, no other text.
+                Look at this receipt image carefully and extract information. Return ONLY a valid JSON object with no extra text.
                 
-                Rules:
-                - If you are confident about a value, return it as-is
-                - If you think you can read it but are not 100% sure, add a ? at the end (e.g. "Walmart?" or "24.99?")
-                - If you cannot read a value at all, return null for that field
-                - For date, use YYYY-MM-DD format
-                - For amount, return only the final total as a number (no $ sign)
-                - For paymentType, return one of: Card, Cash, EBT — or null if unknown
-                - For confidence, return "high", "medium", or "low" based on overall receipt readability
+                RULES:
+                - confidence: "high" if you can read most of the receipt clearly, "medium" if partially readable, "low" if mostly unreadable
+                - vendor: The store or restaurant name. Expand any abbreviations (e.g. "WLMRT" = "Walmart", "TGT" = "Target")
+                - amount: The GRAND TOTAL only — the final amount the customer paid. NOT the subtotal, NOT the tax, NOT any partial total. Look for words like "TOTAL", "AMOUNT DUE", "AMOUNT", "GRAND TOTAL", "TOTAL DUE". If multiple totals exist, pick the largest final one.
+                - date: Purchase date in YYYY-MM-DD format
+                - paymentType: One of Card, Cash, or EBT. Look for VISA/MC/AMEX/CHIP = Card, CASH = Cash, EBT/SNAP/LINK = EBT
+                - items: A list of items purchased. Expand abbreviations into readable names (e.g. "BNN" = "Bananas", "BT CARE" = "Bluetooth Earbuds"). Include the price of each item. Format: "Item Name: $X.XX". Separate items with ", ". If you cannot read items, return null.
                 
-                Return this exact JSON structure:
+                CONFIDENCE RULES for individual fields:
+                - If confident about a value: return it normally
+                - If unsure but have a reasonable guess: add ? at the end (e.g. "Walmart?" or "24.99?")
+                - If you cannot read a value at all: return null
+                
+                Return this exact JSON:
                 {
                   "vendor": "store name or null",
                   "amount": 0.00 or null,
                   "date": "YYYY-MM-DD or null",
                   "paymentType": "Card/Cash/EBT or null",
+                  "items": "Item1: $X.XX, Item2: $X.XX or null",
                   "confidence": "high/medium/low"
                 }
                 """;
@@ -119,7 +160,7 @@ public class ReceiptScanController {
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", CLAUDE_MODEL);
-            requestBody.put("max_tokens", 500);
+            requestBody.put("max_tokens", 800);
             requestBody.put("messages", List.of(message));
 
             String requestJson = mapper.writeValueAsString(requestBody);
@@ -161,17 +202,44 @@ public class ReceiptScanController {
                 result.put("success", true);
                 result.put("confidence", confidence);
 
+                // Vendor
+                String vendor = null;
                 if (!extracted.path("vendor").isNull()) {
-                    result.put("vendor", extracted.path("vendor").asText());
+                    vendor = extracted.path("vendor").asText();
+                    result.put("vendor", vendor);
                 }
+
+                // Amount
                 if (!extracted.path("amount").isNull()) {
                     result.put("amount", extracted.path("amount").asText());
                 }
+
+                // Date
                 if (!extracted.path("date").isNull()) {
                     result.put("date", extracted.path("date").asText());
                 }
+
+                // Payment type
                 if (!extracted.path("paymentType").isNull()) {
                     result.put("paymentType", extracted.path("paymentType").asText());
+                }
+
+                // Items as description (truncate to 500 chars)
+                if (!extracted.path("items").isNull()) {
+                    String items = extracted.path("items").asText();
+                    if (items.length() > 500) {
+                        items = items.substring(0, 497) + "...";
+                    }
+                    result.put("items", items);
+                }
+
+                // ── Store policy lookup ──
+                if (vendor != null) {
+                    Integer refundDays = lookupRefundDays(vendor);
+                    if (refundDays != null) {
+                        result.put("refundDays", refundDays);
+                        result.put("refundDaysFound", true);
+                    }
                 }
             }
 

@@ -11,15 +11,14 @@ public class Receipt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userId; // Firebase UID of the owner
-
+    private String userId;
     private String vendor;
     private double amount;
     private LocalDate date;
     private String paymentType;
     private LocalDate refundDeadline;
 
-    @Column(length = 150)
+    @Column(length = 500)
     private String description;
 
     private boolean refunded;
