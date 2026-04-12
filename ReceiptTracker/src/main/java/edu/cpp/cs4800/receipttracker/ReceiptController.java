@@ -3,6 +3,9 @@ package edu.cpp.cs4800.receipttracker;
 import edu.cpp.cs4800.receipttracker.model.Receipt;
 import edu.cpp.cs4800.receipttracker.model.ReceiptRepository;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,7 +35,8 @@ public class ReceiptController {
 
     @GetMapping("/")
     public String home(HttpSession session, Model model) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
         model.addAttribute("title", "Receipt Tracker – CS4800");
         model.addAttribute("userName", session.getAttribute("userName"));
         return "home";
@@ -40,7 +44,8 @@ public class ReceiptController {
 
     @GetMapping("/receipts")
     public String getReceipts(HttpSession session, Model model) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
 
         String uid = getUid(session);
         List<Receipt> receipts = receiptRepository.findByUserId(uid);
@@ -74,23 +79,25 @@ public class ReceiptController {
 
     @GetMapping("/receipts/add")
     public String showAddForm(HttpSession session, Model model) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
         model.addAttribute("title", "Add Receipt");
         return "add-receipt";
     }
 
     @PostMapping("/receipts")
     public String addReceipt(HttpSession session,
-                             @RequestParam String vendor,
-                             @RequestParam double amount,
-                             @RequestParam String date,
-                             @RequestParam String paymentType,
-                             @RequestParam String refundWindowPreset,
-                             @RequestParam(required = false) Integer customDays,
-                             @RequestParam(required = false, defaultValue = "") String description,
-                             @RequestParam(required = false) String nonReturnable) {
+            @RequestParam String vendor,
+            @RequestParam double amount,
+            @RequestParam String date,
+            @RequestParam String paymentType,
+            @RequestParam String refundWindowPreset,
+            @RequestParam(required = false) Integer customDays,
+            @RequestParam(required = false, defaultValue = "") String description,
+            @RequestParam(required = false) String nonReturnable) {
 
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
 
         String uid = getUid(session);
         LocalDate purchaseDate = LocalDate.parse(date);
@@ -102,7 +109,7 @@ public class ReceiptController {
             refundDays = switch (refundWindowPreset) {
                 case "60" -> 60;
                 case "90" -> 90;
-                default   -> 30;
+                default -> 30;
             };
         }
 
@@ -124,7 +131,8 @@ public class ReceiptController {
 
     @GetMapping("/receipts/edit/{id}")
     public String showEditForm(@PathVariable Long id, HttpSession session, Model model) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
 
         Receipt receipt = receiptRepository.findById(id).orElse(null);
         if (receipt == null || !receipt.getUserId().equals(getUid(session)))
@@ -137,17 +145,18 @@ public class ReceiptController {
 
     @PostMapping("/receipts/update/{id}")
     public String updateReceipt(@PathVariable Long id,
-                                HttpSession session,
-                                @RequestParam String vendor,
-                                @RequestParam double amount,
-                                @RequestParam String date,
-                                @RequestParam String paymentType,
-                                @RequestParam String refundDeadline,
-                                @RequestParam(required = false, defaultValue = "") String description,
-                                @RequestParam(required = false) String refunded,
-                                @RequestParam(required = false) String nonReturnable) {
+            HttpSession session,
+            @RequestParam String vendor,
+            @RequestParam double amount,
+            @RequestParam String date,
+            @RequestParam String paymentType,
+            @RequestParam String refundDeadline,
+            @RequestParam(required = false, defaultValue = "") String description,
+            @RequestParam(required = false) String refunded,
+            @RequestParam(required = false) String nonReturnable) {
 
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
 
         Receipt receipt = receiptRepository.findById(id).orElse(null);
         if (receipt == null || !receipt.getUserId().equals(getUid(session)))
@@ -168,7 +177,8 @@ public class ReceiptController {
 
     @PostMapping("/receipts/refund/{id}")
     public String markRefunded(@PathVariable Long id, HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
         receiptRepository.findById(id).ifPresent(r -> {
             if (r.getUserId().equals(getUid(session))) {
                 r.setRefunded(true);
@@ -180,7 +190,8 @@ public class ReceiptController {
 
     @PostMapping("/receipts/unrefund/{id}")
     public String unmarkRefunded(@PathVariable Long id, HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
         receiptRepository.findById(id).ifPresent(r -> {
             if (r.getUserId().equals(getUid(session))) {
                 r.setRefunded(false);
@@ -190,9 +201,39 @@ public class ReceiptController {
         return "redirect:/receipts";
     }
 
+    @GetMapping("/receipts/export")
+    public void exportCsv(HttpSession session, HttpServletResponse response) throws IOException {
+        if (session.getAttribute("uid") == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        String uid = getUid(session);
+        List<Receipt> receipts = receiptRepository.findByUserId(uid);
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"receipts.csv\"");
+
+        PrintWriter writer = response.getWriter();
+        writer.println("Vendor,Date,Amount,Payment Type,Status,Refund Deadline,Description");
+
+        for (Receipt r : receipts) {
+            writer.printf("\"%s\",\"%s\",\"%.2f\",\"%s\",\"%s\",\"%s\",\"%s\"%n",
+                    r.getVendor(),
+                    r.getDate(),
+                    r.getAmount(),
+                    r.getPaymentType(),
+                    r.getStatus(),
+                    r.getRefundDeadline(),
+                    r.getDescription() != null ? r.getDescription().replace("\"", "\"\"") : "");
+        }
+        writer.flush();
+    }
+
     @PostMapping("/receipts/delete/{id}")
     public String deleteReceipt(@PathVariable Long id, HttpSession session) {
-        if (notLoggedIn(session)) return "redirect:/login";
+        if (notLoggedIn(session))
+            return "redirect:/login";
         receiptRepository.findById(id).ifPresent(r -> {
             if (r.getUserId().equals(getUid(session))) {
                 receiptRepository.deleteById(id);
