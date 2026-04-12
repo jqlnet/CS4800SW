@@ -143,9 +143,9 @@
       <div class="section-label">Item Description</div>
       <div class="field">
         <label>Description <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea name="description" id="description" maxlength="500"
+        <textarea name="description" id="description" maxlength="1000"
                   th:text="${receipt.description}"></textarea>
-        <div class="char-counter" id="char-counter">0 / 500</div>
+        <div class="char-counter" id="char-counter">0 / 1000</div>
       </div>
       <hr class="divider"/>
       <div class="section-label">Status Overrides</div>
@@ -191,8 +191,8 @@
   const charCounter = document.getElementById('char-counter');
   function updateCounter() {
     const len = descArea.value.length;
-    charCounter.textContent = `${len} / 500`;
-    charCounter.classList.toggle('warning', len >= 475);
+    charCounter.textContent = `${len} / 1000`;
+    charCounter.classList.toggle('warning', len >= 950);
   }
   descArea.addEventListener('input', updateCounter);
   updateCounter();

@@ -18,7 +18,7 @@ public class Receipt {
     private String paymentType;
     private LocalDate refundDeadline;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String description;
 
     private boolean refunded;
