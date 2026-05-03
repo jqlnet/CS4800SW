@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ReceiptTrackerApplication<ReceiptTracker>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "edu.cpp.cs4800.receipttracker.ReceiptTrackerApplication",
+            "projectName": "ReceiptTracker",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
