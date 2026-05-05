@@ -28,6 +28,7 @@ public class SettingsController {
         model.addAttribute("title", "Settings");
         model.addAttribute("settings", settings);
         model.addAttribute("userName", session.getAttribute("userName"));
+        model.addAttribute("userEmail", session.getAttribute("userEmail"));
         model.addAttribute("displayName", settings.getDisplayName() != null
                 ? settings.getDisplayName()
                 : session.getAttribute("userName"));
